@@ -1,0 +1,475 @@
+<div th:replace="~{layout/head}"></div>
+<style>
+    .chat-room {
+    cursor: pointer;
+    padding: 15px;
+    border: 1px solid #ddd;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.chat-room:hover {
+    background-color: #f0f0f0;
+    transform: scale(1.05);
+}
+
+.chat-room-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.chat-room-last-message {
+    font-size: 14px;
+    color: #777;
+    margin-top: 5px;
+}
+
+/* Modal Chat Box Styling */
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%; /* 부모 요소에 맞게 크기 설정 */
+    max-width: 600px; /* 필요 시 최대 크기 제한 */
+    box-sizing: border-box; /* 테두리와 패딩 포함 */
+}
+
+.modal-header, .modal-body {
+    flex-shrink: 0; /* 크기가 줄어들지 않도록 설정 */
+    padding: 15px; /* 내부 여백 추가 */
+    width: 100%; /* 부모 요소에 맞게 크기 설정 */
+    box-sizing: border-box; /* 테두리와 패딩 포함 */
+}
+
+.modal-dialog {
+    max-width: 600px; /* 모달의 최대 너비 설정 */
+    margin: auto;
+}
+
+.modal-header {
+    background-color: #248A52;
+    color: white;
+    border-bottom: 1px solid #ddd;
+}
+
+.modal-title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.modal-body {
+    flex-grow: 1; /* 남은 공간을 채움 */
+    overflow-y: auto; /* 내용이 많을 때 스크롤 추가 */
+    padding: 20px; /* 여백 추가 */
+}
+
+.chat-box {
+    display: flex;
+    flex-direction: column;
+    height: 500px; /* 원하는 크기로 조정 */
+    max-height: 500px; /* 이 설정이 메시지 영역의 높이를 제한합니다. */
+    overflow-y: auto; /* 스크롤 설정 유지 */
+    margin-bottom: 0;
+}
+
+.messages {
+    flex: 1;
+    display: flex;
+    flex-direction: column; /* 메시지를 세로로 정렬 */
+    gap: 10px; /* 메시지 간 간격 */
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    height: calc(100% - 80px); /* 필요에 따라 메시지 영역 크기 계산 */
+    overflow-y: auto; /* 스크롤 가능 */
+}
+
+.message {
+    display: block; /* inline-block 대신 block으로 설정 */
+    padding: 10px 15px;
+    margin: 10px 0;
+    border-radius: 10px;
+    max-width: 70%;
+    font-size: 14px;
+    line-height: 1.5;
+    word-wrap: break-word; /* 줄바꿈 강제 */
+    clear: both; /* 양쪽 정렬이 꼬이지 않도록 */
+}
+
+.message.sent {
+    background-color: #248A52;
+    color: white;
+    float: right; /* 오른쪽 정렬 */
+    text-align: right;
+    margin-left: auto; /* 오른쪽 정렬 강화 */
+}
+
+.message.received {
+    background-color: #e2e2e2;
+    color: #333;
+    float: left; /* 왼쪽 정렬 */
+    text-align: left;
+    margin-right: auto; /* 왼쪽 정렬 강화 */
+}
+
+.message-box {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: white;
+    border-top: 1px solid #ddd;
+}
+
+.message-input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 14px;
+    margin-right: 10px;
+}
+
+.message-submit {
+    background-color: #248A52;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.message-submit:hover {
+    background-color: #1d7745;
+}
+
+.new-message {
+    animation: bounce 0.3s ease-out;
+}
+
+@keyframes bounce {
+    0% {
+        transform: scale(0.8);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.message-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #aaa;
+}
+
+.message-timestamp {
+    font-size: 12px;
+    color: #aaa;
+}
+
+.message-status {
+    font-size: 12px;
+    margin-left: 10px;
+}
+
+.message-status.read {
+    color: green;
+}
+
+.message-status.unread {
+    color: red;
+}
+</style>
+</head>
+<script>
+    let memberId = [[${memberId}]];
+    let memberName = "[[${memberName}]]";  // memberName 값이 잘 전달되는지 확인
+
+    if (!memberName || memberName === "null") {
+        console.error("memberName is not defined or is null.");
+    } else {
+        console.log("Member Name:", memberName);  // 콘솔에서 확인
+    }
+</script>
+<div th:replace="layout/sidebar :: sidebar"></div>
+<th:block th:replace="~{/layout/basic::setContent(~{this::content})}">
+    <th:block th:fragment="content">
+        <body>
+        <h2>채팅방</h2>
+        <!-- 채팅방 목록 -->
+        <div id="chatRoomList" style="display: flex; flex-wrap: wrap; gap: 20px;">
+            <!-- 프로필 사진 기반 채팅방 목록 -->
+        </div>
+
+        <!-- 채팅 모달 (Bootstrap Modal) -->
+        <div class="modal fade" id="chatModal" tabindex="-1" aria-labelledby="chatModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="chatModalLabel">채팅방</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="chat-box">
+                            <div id="messages" class="messages">
+                                <div class="message sent">
+                                    <p>안녕하세요, 이건 보낸 메시지입니다.</p>
+                                    <div class="message-footer">
+                                        <span class="message-timestamp">2024-12-26 12:34</span>
+                                        <span class="message-status unread">안읽음</span>
+                                    </div>
+                                </div>
+                                <div class="message received">
+                                    <p>안녕하세요, 이건 받은 메시지입니다.</p>
+                                    <div class="message-footer">
+                                        <span class="message-timestamp">2024-12-26 12:34</span>
+                                        <span class="message-status read">읽음</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="message-box">
+                                <textarea id="modalMessageContent" class="message-input" rows="2"
+                                          placeholder="메시지를 입력하세요"
+                                          required></textarea>
+                            <button id="sendMessage" class="message-submit" onclick="sendMessage()">전송</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </body>
+    </th:block>
+</th:block>
+<script>
+    let currentChatRoomId = null;
+    let chatRoomData = [];
+    let stompClient = null;
+
+    // 페이지 로드 시 채팅방 목록 불러오기
+    window.onload = loadChatRoomList;
+    document.addEventListener('DOMContentLoaded', () => {
+        loadChatRoomList();
+    });
+
+    // 채팅방 목록 불러오기
+    function loadChatRoomList() {
+        fetch('/chat/chatRoomListData')
+            .then(response => response.json())
+            .then(data => {
+                chatRoomData = data;
+                console.log('ChatRoomData:', chatRoomData);
+                const chatRoomListContainer = document.getElementById('chatRoomList');
+                chatRoomListContainer.innerHTML = ''; // 기존 목록 초기화
+                data.forEach(room => {
+                    const otherName = room.senderId === memberId ? room.receiverName : room.senderName;
+                    const otherProfileImageUrl = room.senderId === memberId ? room.receiverProfileImageUrl : room.senderProfileImageUrl;
+                    console.log('Profile Image URL:', otherProfileImageUrl);
+                    if (room.senderId === memberId || room.receiverId === memberId) {
+                        const roomCard = document.createElement('div');
+                        roomCard.style.cursor = 'pointer';
+                        roomCard.style.textAlign = 'center';
+                        // 프로필 사진 추가
+                        const profileImage = document.createElement('img');
+                        profileImage.src = otherProfileImageUrl || '/images/default.png'; // 기본 이미지 설정
+                        profileImage.alt = `${otherName}의 프로필 사진`;
+                        profileImage.style.width = '100px';
+                        profileImage.style.height = '100px';
+                        profileImage.style.borderRadius = '50%';
+                        profileImage.style.border = '3px solid #3498db';
+                        profileImage.style.objectFit = 'cover';
+                        profileImage.addEventListener('click', function () {
+                            openChatModal(room.chatRoomId);
+                        });
+                        // 상대방 이름 추가
+                        const nameLabel = document.createElement('div');
+                        nameLabel.textContent = otherName;
+                        nameLabel.style.marginTop = '10px';
+                        nameLabel.style.fontSize = '14px';
+                        nameLabel.style.fontWeight = 'bold';
+                        nameLabel.style.color = '#333';
+                        roomCard.appendChild(profileImage);
+                        roomCard.appendChild(nameLabel);
+                        chatRoomListContainer.appendChild(roomCard);
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error loading chat room list:', error);
+                alert('채팅방 목록을 불러오는 데 오류가 발생했습니다.');
+            });
+    }
+
+    // 채팅방 모달 열기
+    function openChatModal(chatRoomId) {
+        currentChatRoomId = chatRoomId; // 선택된 채팅방 ID 저장
+        loadMessages(chatRoomId); // 메시지 불러오기
+        initializeWebSocket(chatRoomId); // WebSocket 연결
+
+        // 채팅방의 상대방 이름 가져오기
+        const receiverName = getReceiverNameForRoom(chatRoomId);
+
+        // 모달 제목을 상대방 이름으로 변경
+        const chatModalLabel = document.getElementById('chatModalLabel');
+        chatModalLabel.textContent = `${receiverName}님과의 채팅`;
+
+        // Bootstrap modal 열기
+        const chatModal = new bootstrap.Modal(document.getElementById('chatModal'));
+        chatModal.show();
+    }
+
+    // 채팅방 메시지 불러오기
+    function loadMessages(chatRoomId) {
+        console.log("Loading messages for chatRoomId:", chatRoomId);
+        fetch(`/chat/messages/${chatRoomId}`)
+            .then(response => {
+                if (!response.ok) {
+                    // 서버 응답이 200번대가 아닌 경우
+                    throw new Error(`서버 오류: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.messages) {
+                    const messageListContainer = document.getElementById('messages');
+                    messageListContainer.innerHTML = ''; // 기존 메시지 초기화
+
+                    data.messages.forEach(message => {
+                        const messageItem = document.createElement('div');
+                        messageItem.classList.add(
+                            'message',
+                            message.senderId === memberId ? 'sent' : 'received'
+                        );
+                        messageItem.innerHTML = `
+                            <p>${message.content}</p>
+                            <span class="message-timestamp">${new Date(message.createdAt).toLocaleString()}</span>
+<!--                            <span class="message-status ${message.status ? 'read' : 'unread'}">${message.status ? '읽음' : '안읽음'}</span>-->
+                        `;
+                        messageListContainer.appendChild(messageItem);
+                    });
+
+                    // 메시지 로드 후 스크롤 이동
+                    setTimeout(() => {
+                        messageListContainer.scrollTop = messageListContainer.scrollHeight;
+                    }, 100);
+                } else {
+                    console.error('No messages found in the response.');
+                    alert('메시지를 불러오는 데 오류가 발생했습니다. (데이터 없음)');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading messages:', error);
+                alert(`메시지를 불러오는 데 오류가 발생했습니다: ${error.message}`);
+            });
+    }
+
+    // WebSocket 초기화 및 메시지 수신 처리
+    function initializeWebSocket(chatRoomId) {
+        if (stompClient && stompClient.connected) {
+            stompClient.subscribe(`/sub/chat/${chatRoomId}`, function (messageOutput) {
+                const message = JSON.parse(messageOutput.body);
+                if (message.chatRoomId === currentChatRoomId) {
+                    displayNewMessage(message);
+                }
+            });
+            return;
+        }
+        const socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function (frame) {
+            stompClient.subscribe(`/sub/chat/${chatRoomId}`, function (messageOutput) {
+                const message = JSON.parse(messageOutput.body);
+                if (message.chatRoomId === currentChatRoomId) {
+                    displayNewMessage(message);
+                }
+            });
+        });
+    }
+
+    // 새로운 메시지 표시
+    function displayNewMessage(message) {
+        const messageListContainer = document.getElementById('messages');
+        const messageItem = document.createElement('div');
+        messageItem.classList.add(
+            'message',
+            message.senderId === memberId ? 'sent' : 'received'
+        );
+        messageItem.innerHTML = `
+           <p>${message.content}</p>
+           <span class="message-timestamp">${new Date(message.createdAt).toLocaleString()}</span>
+<!--           <span class="message-status ${message.status ? 'read' : 'unread'}">${message.status ? '읽음' : '안읽음'}</span>-->
+        `;
+        messageListContainer.appendChild(messageItem);
+
+        // 스크롤을 마지막 메시지로 이동
+        messageListContainer.scrollTop = messageListContainer.scrollHeight;
+    }
+
+    // 메시지 읽음 상태 변경
+    function markMessageAsRead(messageId) {
+        fetch(`/chat/messages/markAsRead/${messageId}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Message marked as read:', data);
+            })
+            .catch(error => console.error('Error marking message as read:', error));
+    }
+
+    // 메시지 전송
+    function sendMessage() {
+        const messageContentInput = document.getElementById('modalMessageContent');
+        const messageListContainer = document.getElementById('messages'); // 메시지 리스트
+        if (!messageContentInput || !messageListContainer) {
+            console.error('Required input or message list element not found.');
+            return;
+        }
+
+        const messageContent = messageContentInput.value.trim();
+        if (!messageContent) {
+            alert('메시지를 입력하세요.');
+            return;
+        }
+        if (!currentChatRoomId) {
+            alert('채팅방이 선택되지 않았습니다.');
+            return;
+        }
+
+        const messageData = {
+            chatRoomId: currentChatRoomId,
+            senderId: memberId,
+            senderName: memberName,
+            receiverId: getReceiverIdForRoom(currentChatRoomId),
+            receiverName: getReceiverNameForRoom(currentChatRoomId),
+            content: messageContent,
+            createdAt: new Date().toISOString(),
+            status: 'UNREAD'
+        };
+
+        stompClient.send('/pub/chat/send/chatRoom', {}, JSON.stringify(messageData));
+
+        // UI 업데이트 (보낸 메시지 표시)
+        const messageItem = document.createElement('div');
+        messageContentInput.value = ''; // 입력창 초기화
+        messageListContainer.scrollTop = messageListContainer.scrollHeight; // 마지막 메시지로 스크롤
+    }
+
+    // 채팅방의 상대방 ID 반환
+    function getReceiverIdForRoom(chatRoomId) {
+        const roomData = chatRoomData.find(room => room.chatRoomId === chatRoomId);
+        return roomData ? (roomData.senderId === memberId ? roomData.receiverId : roomData.senderId) : null;
+    }
+
+    // 채팅방의 상대방 이름 반환
+    function getReceiverNameForRoom(chatRoomId) {
+        const roomData = chatRoomData.find(room => room.chatRoomId === chatRoomId);
+        return roomData ? (roomData.senderId === memberId ? roomData.receiverName : roomData.senderName) : null;
+    }
+</script>
+</html>

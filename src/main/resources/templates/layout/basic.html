@@ -1,0 +1,170 @@
+<div th:replace="~{layout/head}"></div>
+</head>
+<style>
+    /* 모달 창 */
+    .member-modalBasic {
+        position: absolute;
+        display: none;
+        background-color: white;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+        z-index: 1000;
+        width: 200px;
+    }
+
+    .member-modal-header {
+        font-weight: bold;
+        font-size: 1rem;
+        margin-bottom: 10px;
+    }
+
+    .member-modal-close {
+        cursor: pointer;
+        float: right;
+        font-size: 1.2rem;
+        color: #aaa;
+    }
+
+    .member-modal-close:hover {
+        color: #000;
+    }
+
+
+    /* 모달 스타일 */
+.member-modal {
+    position: absolute;
+    width: 120px;
+    height: 161px;
+    max-width: 90%;
+    background-color: #fff;
+    border: 1px solid #32E0C4;
+    padding: 10px;
+    border-radius: 2px;
+    z-index: 1000;
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 추가적인 그림자 */
+}
+
+/* 모달 헤더 */
+.member-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+/* 닫기 버튼 */
+.member-modal-close {
+    cursor: pointer;
+    font-size: 18px;
+    color: #333;
+}
+
+/* 링크 스타일 */
+.member-modal a {
+    text-decoration: none;
+    color: #007BFF;
+    margin-top: 5px;
+    display: block;
+}
+
+.member-modal a:hover {
+    text-decoration: underline;
+}
+
+
+</style>
+<th:block th:fragment="setContent(content)">
+<link rel="stylesheet" th:href="@{/css/footer.css}" />
+<link rel="stylesheet" th:href="@{/css/navbar.css}" />
+    <body>
+    <nav class="navbar navbar-expand-sm bg-light navbar-light">
+        <div class="container-fluid">
+            <ul class="navbar-nav">
+            </ul>
+            <ul class="navbar-nav" sec:authorize="isAnonymous()">
+                <li class="nav-item">
+                    <a href="javascript:void(0);" class="nav-link" onclick="redirectToLogin();">
+                        회원가입/로그인
+                    </a>
+                </li>
+            </ul>
+            <ul class="navbar-nav" sec:authorize="isAuthenticated()">
+                <li class="nav-item me-3">
+                    <a th:href="@{/chat/chatRoomList}" class="nav-link">채팅</a>
+                </li>
+                <li class="nav-item me-3">
+                    <a th:href="'/member/mypage'" class="nav-link">마이 페이지</a>
+                </li>
+                <li class="nav-item">
+                    <form th:action="@{/member/logout}" th:method="post" style="display: inline;">
+                        <button type="submit" class="nav-link">
+                            로그아웃
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+        <div sec:authorize="isAuthenticated()">
+        <span th:if="${#authentication.principal.fromSocial}">
+        </span>
+            <span th:if="${!#authentication.principal.fromSocial}">
+        </span>
+        </div>
+        <th:block th:replace="${content}"></th:block>
+    </div>
+    <script>
+        function redirectToLogin() {
+            const currentUrl = window.location.href; // 현재 페이지 URL 가져오기
+            const loginUrl = `/member/login?redirect=` + encodeURIComponent(currentUrl); // 리다이렉트 URL 생성
+            window.location.href = loginUrl; // 로그인 페이지로 이동
+        }
+
+        let lastScrollTop = 0; // 이전 스크롤 위치
+        const threshold = 25; // 스크롤 감지를 위한 임계값 (10px 이상 움직여야 동작)
+        const navbar = document.querySelector('.navbar');
+
+        window.addEventListener("scroll", function () {
+            let scrollTop = window.scrollY || document.documentElement.scrollTop;
+
+            // 스크롤 변화량이 임계값을 초과했을 때만 동작
+            if (Math.abs(scrollTop - lastScrollTop) > threshold) {
+                if (scrollTop > lastScrollTop) {
+                    // 스크롤 내릴 때: 네비게이션 바 숨기기
+                    navbar.style.top = '-25px'; // 네비게이션 바의 높이만큼 숨김
+                } else {
+                    // 스크롤 올릴 때: 네비게이션 바 나타나기
+                    navbar.style.top = '0';
+                }
+                lastScrollTop = scrollTop; // 이전 스크롤 위치 업데이트
+            }
+        });
+
+        const sidebar = document.querySelector('.sidebar'); // 사이드바 선택
+        const navHeight = 25; // 스크롤 감지 기준 (네비게이션 바의 높이)
+
+        window.addEventListener('scroll', function () {
+            if (window.scrollY > navHeight) {
+                // 스크롤이 25px 이상 내려갔을 때
+                sidebar.classList.add('fixed');
+            } else {
+                // 스크롤이 위로 올라가 25px 이하일 때
+                sidebar.classList.remove('fixed');
+            }
+        });
+
+        window.addEventListener("resize", function () {
+    // 동작 없음으로 설정하여 화면 크기에 따른 변경 비활성화
+        });
+
+    </script>
+    </body>
+</th:block>
+</html>

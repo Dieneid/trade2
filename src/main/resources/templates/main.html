@@ -1,0 +1,195 @@
+<div th:replace="~{layout/head}"></div>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>중고 거래</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+    /* 기본적인 스타일 초기화 */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    /* 본문 폰트 설정 */
+    body {
+        font-family: Arial, sans-serif;
+        background-color: white;
+    }
+
+    /* 헤더 스타일 */
+    .header {
+        background-color: #ff6f61;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+    }
+
+    .header .logo {
+        font-size: 1.8rem;
+        font-weight: bold;
+    }
+
+    /* 배너 이미지 */
+    .banner img {
+        width: 100%;
+        height: auto;
+        margin-top: 20px;
+    }
+
+    /* 카테고리 섹션 */
+    .category {
+        margin-top: 30px;
+        padding: 20px;
+        background-color: white;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .category h2 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+    }
+
+    .category-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px; /* 아이템 간 간격 */
+        justify-content: center; /* 중앙 정렬 */
+    }
+
+    .category-item {
+        display: flex;
+        flex-direction: column; /* 세로 정렬 */
+        align-items: center; /* 중앙 정렬 */
+        text-align: center; /* 텍스트 중앙 정렬 */
+        width: 150px; /* 고정된 아이템 너비 */
+    }
+
+    .category-item img {
+        width: 100px; /* 기본 이미지 너비 */
+        height: 100px; /* 기본 이미지 높이 */
+        object-fit: cover; /* 비율을 유지하면서 크기에 맞춤 */
+        margin-bottom: 10px; /* 이미지와 텍스트 간격 */
+        transition: transform 0.5s ease-in-out; /* 확대 효과의 부드러운 전환 */
+    }
+
+    .category-item img:hover {
+        transform: scale(1.1); /* 이미지 확대 비율 (120%) */
+    }
+
+    .category-item p {
+        margin: 0;
+        font-size: 14px;
+        min-height: 20px; /* 텍스트 높이를 일정하게 유지 */
+    }
+
+    /* 상품 리스트 */
+    .product-list {
+        margin-top: 40px;
+        padding: 20px;
+        background-color: white;
+        border: 1px solid #32E0C4;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-list h2 {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    .products {
+        display: flex;
+        flex-wrap: wrap; /* 요소가 줄바꿈 가능하도록 설정 */
+        gap: 20px; /* 각 제품 간의 간격 */
+        justify-content: space-between; /* 남은 공간을 균등 분배 */
+    }
+
+    .product {
+        text-align: center;
+        flex: 1 1 calc(25% - 20px); /* 한 줄에 4개 (25% 너비에서 간격을 제외) */
+        max-width: calc(25% - 20px); /* 최대 너비 설정 */
+        box-sizing: border-box; /* 패딩과 테두리를 포함한 크기 계산 */
+    }
+
+    .product img {
+        width: 100%; /* 부모 요소에 맞게 이미지 크기 조정 */
+        border: 1px solid #32E0C4;
+        height: auto; /* 이미지 비율 유지 */
+        margin-bottom: 10px;
+    }
+
+    .product span {
+        display: block;
+        font-size: 1.2rem;
+        color: #ff6f61;
+        font-weight: bold;
+    }
+
+    .banner {
+        width: 1160px; /* 기본 이미지 너비 */
+        height: 300px; /* 기본 이미지 높이 */
+    }
+
+    /* 푸터 스타일 */
+    .footer {
+        background-color: #333;
+        color: white;
+        text-align: center;
+        padding: 10px;
+        margin-top: 30px;
+    }
+
+</style>
+</head>
+<div th:replace="layout/sidebar :: sidebar"></div>
+<th:block th:replace="~{/layout/basic::setContent(~{this::content})}">
+    <th:block th:fragment="content">
+        <body>
+        <main>
+            <section class="banner">
+                <img src="/images/banner.jpg" alt="배너 이미지">
+            </section>
+
+            <section class="product-list">
+                <h2>최근 게시물</h2>
+                <div class="products">
+                    <div class="product" th:each="product : ${products}">
+                        <th:block th:each="dto : ${productDTOList}" th:if="${dto.productId == product.productId}">
+                            <a th:href="@{/product/read/{productId}(productId=${dto.productId})}" class="product-link">
+                                <th:block th:if="${dto.firstImageId != null}">
+                                    <img th:src="@{/product/images/{imageId}(imageId=${dto.firstImageId})}"
+                                         alt="상품 이미지"
+                                         class="product-image"
+                                         style="width: 200px; height: 200px;">
+                                </th:block>
+                                <th:block th:if="${dto.firstImageId == null}">
+                                    <img src="/images/default.png"
+                                         alt="기본 이미지"
+                                         class="product-image"
+                                         style="width: 200px; height: 200px;">
+                                </th:block>
+                            </a>
+                        </th:block>
+                        <p th:text="${product.title}"></p>
+                        <span th:text="${product.sellPrice + '원'}"></span>
+                    </div>
+
+                    </div>
+                </div>
+            </section>
+        </main>
+        <div th:replace="layout/footer :: footer"></div>
+        </body>
+    </th:block>
+</th:block>
+<script th:if="${message}" th:inline="javascript">
+    /*<![CDATA[*/
+    var message = [[${message}]]
+    alert(message);
+    /*]]>*/
+</script>
+</html>

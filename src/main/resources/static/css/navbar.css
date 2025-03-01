@@ -1,0 +1,45 @@
+.navbar {
+    width: 100%; /* 전체 너비로 설정 */
+    margin: 0 auto; /* 중앙 정렬 */
+    height: 25px; /* 네비게이션 바 전체 높이 */
+    padding: 10px 18%; /* 위아래와 좌우 패딩 */
+    background-color: #32E0C4 !important; /* 강제 적용 */
+    box-sizing: border-box; /* 패딩 포함한 너비 계산 */
+}
+
+.navbar .nav-link {
+    font-size: 14px; /* 링크 텍스트 크기 */
+    padding: 8px 12px; /* 링크 간 내부 여백 */
+    color: black; /* 글자 색상을 흰색으로 설정 */
+    font-weight: bold; /* 글자를 두껍게 설정 */
+    text-decoration: none; /* 밑줄 제거 (선택 사항) */
+}
+
+.navbar .icon-img {
+    width: 16px; /* 아이콘 너비 */
+    height: 16px; /* 아이콘 높이 */
+}
+.modal-content {
+    font-size: 14px; /* 모달 내 폰트 크기 */
+}
+
+ /*메인 콘텐츠 여백*/
+.container {
+    width: 1200px; /* 고정된 너비 */
+    margin: 0 auto; /* 중앙 정렬 */
+    margin-top: 140px; /* 사이드바 높이 + 여백 */
+    padding: 20px;
+}
+
+
+@font-face {
+    font-family: 'SDSamliphopangche_Outline';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts-20-12@1.0/SDSamliphopangche_Outline.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+body {
+    font-family: 'SDSamliphopangche_Outline', sans-serif;
+}
+

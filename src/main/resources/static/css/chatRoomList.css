@@ -1,0 +1,186 @@
+.chat-room {
+    cursor: pointer;
+    padding: 15px;
+    border: 1px solid #ddd;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.chat-room:hover {
+    background-color: #f0f0f0;
+    transform: scale(1.05);
+}
+
+.chat-room-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.chat-room-last-message {
+    font-size: 14px;
+    color: #777;
+    margin-top: 5px;
+}
+
+/* Modal Chat Box Styling */
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%; /* 부모 요소에 맞게 크기 설정 */
+    max-width: 600px; /* 필요 시 최대 크기 제한 */
+    box-sizing: border-box; /* 테두리와 패딩 포함 */
+}
+
+.modal-header, .modal-body {
+    flex-shrink: 0; /* 크기가 줄어들지 않도록 설정 */
+    padding: 15px; /* 내부 여백 추가 */
+    width: 100%; /* 부모 요소에 맞게 크기 설정 */
+    box-sizing: border-box; /* 테두리와 패딩 포함 */
+}
+
+.modal-dialog {
+    max-width: 600px; /* 모달의 최대 너비 설정 */
+    margin: auto;
+}
+
+.modal-header {
+    background-color: #248A52;
+    color: white;
+    border-bottom: 1px solid #ddd;
+}
+
+.modal-title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.modal-body {
+    flex-grow: 1; /* 남은 공간을 채움 */
+    overflow-y: auto; /* 내용이 많을 때 스크롤 추가 */
+    padding: 20px; /* 여백 추가 */
+}
+
+.chat-box {
+    display: flex;
+    flex-direction: column;
+    height: 500px; /* 원하는 크기로 조정 */
+    max-height: 500px; /* 이 설정이 메시지 영역의 높이를 제한합니다. */
+    overflow-y: auto; /* 스크롤 설정 유지 */
+    margin-bottom: 0;
+}
+
+.messages {
+    flex: 1;
+    display: flex;
+    flex-direction: column; /* 메시지를 세로로 정렬 */
+    gap: 10px; /* 메시지 간 간격 */
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    height: calc(100% - 80px); /* 필요에 따라 메시지 영역 크기 계산 */
+    overflow-y: auto; /* 스크롤 가능 */
+}
+
+.message {
+    display: block; /* inline-block 대신 block으로 설정 */
+    padding: 10px 15px;
+    margin: 10px 0;
+    border-radius: 10px;
+    max-width: 70%;
+    font-size: 14px;
+    line-height: 1.5;
+    word-wrap: break-word; /* 줄바꿈 강제 */
+    clear: both; /* 양쪽 정렬이 꼬이지 않도록 */
+}
+
+.message.sent {
+    background-color: #248A52;
+    color: white;
+    float: right; /* 오른쪽 정렬 */
+    text-align: right;
+    margin-left: auto; /* 오른쪽 정렬 강화 */
+}
+
+.message.received {
+    background-color: #e2e2e2;
+    color: #333;
+    float: left; /* 왼쪽 정렬 */
+    text-align: left;
+    margin-right: auto; /* 왼쪽 정렬 강화 */
+}
+
+.message-box {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: white;
+    border-top: 1px solid #ddd;
+}
+
+.message-input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 14px;
+    margin-right: 10px;
+}
+
+.message-submit {
+    background-color: #248A52;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.message-submit:hover {
+    background-color: #1d7745;
+}
+
+.new-message {
+    animation: bounce 0.3s ease-out;
+}
+
+@keyframes bounce {
+    0% {
+        transform: scale(0.8);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.message-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #aaa;
+}
+
+.message-timestamp {
+    font-size: 12px;
+    color: #aaa;
+}
+
+.message-status {
+    font-size: 12px;
+    margin-left: 10px;
+}
+
+.message-status.read {
+    color: green;
+}
+
+.message-status.unread {
+    color: red;
+}

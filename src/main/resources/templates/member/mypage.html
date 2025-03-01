@@ -1,0 +1,527 @@
+<div th:replace="~{layout/head}"></div>
+<style>
+    /* 전체 컨테이너 */
+    .profile-container {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+        padding: 20px;
+        border-bottom: 2px solid #ddd; /* 상단과 하단 구분선 */
+    }
+
+    /* 프로필 이미지 스타일 */
+    .profile-container img {
+        flex-shrink: 0;
+        width: 150px;
+        height: 150px;
+        border: 3px solid #3498db;
+        border-radius: 8px; /* 부드러운 모서리 */
+    }
+
+    /* 상세 정보 스타일 */
+    .profile-details {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    /* 버튼 그룹 스타일 */
+    .nav-item.d-flex {
+        margin-top: 15px;
+        gap: 10px;
+    }
+
+    /* 탭 버튼 스타일 */
+    .tab-buttons {
+        display: flex;
+        justify-content: center;
+        margin: 20px 0;
+        gap: 10px;
+    }
+
+    .tab-buttons button {
+        padding: 10px 20px;
+        font-size: 16px;
+        border: 1px solid #3498db;
+        background-color: #f9f9f9;
+        color: #3498db;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .tab-buttons button:hover {
+        background-color: #3498db;
+        color: #fff;
+    }
+
+    /* 탭 컨텐츠 스타일 */
+    .tab-content {
+        padding: 20px;
+        background: #fdfdfd;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 리뷰 및 찜 목록 구분 */
+    .reviews ul, .favorites-table {
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+    }
+
+    .reviews li, .favorites-table tr {
+        margin-bottom: 10px;
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    /* 별 디자인 */
+    .rating {
+        display: inline-flex;
+        gap: 4px;
+    }
+
+    .star {
+        width: 20px;
+        height: 20px;
+        display: inline-block;
+        background: linear-gradient(to right, gold var(--percent), lightgray var(--percent));
+        clip-path: polygon(
+                50% 0%,
+                61% 35%,
+                98% 35%,
+                68% 57%,
+                79% 91%,
+                50% 70%,
+                21% 91%,
+                32% 57%,
+                2% 35%,
+                39% 35%
+        );
+    }
+
+    /* 내가 작성한 글 컨테이너 */
+    .posts {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* 220px 이상의 크기로 자동으로 4개씩 표시 */
+        gap: 20px; /* 항목 사이 간격 */
+    }
+
+    .product-image-container {
+        weight: auto;
+        height: auto; /* 고정 높이 설정 */
+        position: relative; /* 오버레이를 이미지에 맞게 위치시키기 위한 설정 */
+    }
+
+    /* 상품 이미지 스타일 */
+    .product-image {
+        width: 100%; /* 너비를 100%로 설정하여 부모 요소에 맞게 크기 조정 */
+        height: 150px; /* 고정 높이 설정 */
+        object-fit: contain; /* 이미지가 잘리지 않도록 비율 유지 */
+        border-radius: 8px; /* 모서리 둥글게 */
+    }
+
+    .favorite-image {
+        width: 100%; /* 너비를 100%로 설정하여 부모 요소에 맞게 크기 조정 */
+        height: 150px; /* 고정 높이 설정 */
+        object-fit: contain; /* 이미지가 잘리지 않도록 비율 유지 */
+        border-radius: 8px; /* 모서리 둥글게 */
+        position: relative;
+    }
+
+    /* 상품 제목과 가격 */
+    .product-title {
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    .product-price {
+        display: block;
+        color: #333;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    .RESERVED-image,
+    .SOLDOUT-image {
+        opacity: 0.3; /* 불투명도 조정 */
+        position: relative; /* 오버레이 적용을 위한 상대 위치 */
+        z-index: 0; /* 오버레이 아래로 설정 */
+    }
+    .RESERVED-overlay,
+    .SOLDOUT-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* 반투명 검정 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 1rem;
+        z-index: 10; /* 필요 시 적절한 z-index 설정 */
+        font-weight: bold;
+        border-radius: 8px; /* 모서리 둥글게 */
+    }
+
+    /* 탭 전체 스타일 */
+    #reviewsTab {
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    #reviewsTab h2 {
+        margin-bottom: 20px;
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        text-align: center;
+    }
+
+    /* 리뷰 리스트 스타일 */
+    .reviews ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .reviews li {
+        margin-bottom: 20px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #fff;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .reviews li:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 리뷰 헤더 스타일 */
+    .review-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .profile-image {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 15px;
+        border: 2px solid #ddd;
+    }
+
+    .author-name {
+        font-size: 16px;
+        font-weight: bold;
+        color: #555;
+    }
+
+    /* 평가 별점 스타일 */
+    .stars {
+        font-size: 18px;
+        color: #FFD700;
+        margin-left: 5px;
+    }
+
+    /* 리뷰 내용 스타일 */
+    .reviews p {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #666;
+    }
+
+    /* 평균 별점 섹션 스타일 */
+    .rating {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .rating span {
+        font-size: 16px;
+        color: #333;
+    }
+
+    /* 평균 별점 텍스트 스타일 */
+    .reviews label {
+        font-size: 16px;
+        font-weight: bold;
+        color: #444;
+        margin-bottom: 5px;
+        display: block;
+    }
+</style>
+</head>
+<div th:replace="layout/sidebar :: sidebar"></div>
+<th:block th:replace="~{/layout/basic::setContent(~{this::content})}">
+    <th:block th:fragment="content">
+        <body>
+        <h1>내 정보</h1>
+
+        <div th:object="${memberDTO}" class="profile-container">
+            <img th:if="${memberDTO.profileImageUrl != null && memberDTO.profileImageUrl != ''}"
+                 th:src="@{${memberDTO.profileImageUrl}}"
+                 alt="프로필 사진">
+            <img th:if="${memberDTO.profileImageUrl == null || memberDTO.profileImageUrl == ''}"
+                 src="/images/default.png"
+                 alt="기본 프로필 사진">
+            <div class="profile-details">
+                <div><label>이메일:</label> <span th:text="${memberDTO.email}"></span></div>
+                <div><label>닉네임:</label> <span th:text="${memberDTO.name}"></span></div>
+                <div><label>전화번호:</label> <span th:text="${memberDTO.phoneNumber}"></span></div>
+                <div><label>주소:</label> <span th:text="${memberDTO.city}"></span></div>
+                <div><label>상세주소:</label> <span th:text="${memberDTO.street}"></span></div>
+                <div><label>우편 번호:</label> <span th:text="${memberDTO.zipcode}"></span></div>
+                <div class="nav-item d-flex">
+                    <a th:href="@{/member/update}" class="btn btn-outline-primary">정보 수정</a>
+                    <a href="javascript:void(0);" class="btn btn-outline-danger" onclick="openBlackList()">차단 목록</a>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="tab-buttons">
+            <button class="btn btn-outline-success" onclick="showTab('myPostsTab')">내가 작성한 글</button>
+            <button class="btn btn-outline-info" onclick="showTab('reviewsTab')">상점 후기</button>
+            <button class="btn btn-outline-primary" onclick="showTab('favoritesTab')">찜 목록</button>
+        </div>
+
+        <div id="myPostsTab" class="tab-content">
+            <h2>내가 작성한 글</h2>
+            <div class="posts">
+                <div class="product" th:each="product : ${myproductList}">
+                    <th:block th:each="dto : ${productDTOList}" th:if="${dto.productId == product.productId}">
+                        <!-- 상품 이미지 -->
+                        <a th:href="@{/product/read/{productId}(productId=${dto.productId})}" class="product-link">
+                            <div class="product-image-container">
+                                <th:block th:if="${dto.firstImageId != null}" a>
+                                    <img th:src="@{/product/images/{imageId}(imageId=${dto.firstImageId})}"
+                                         alt="상품 이미지"
+                                         th:classappend="${product.status == 'SOLDOUT' ? 'SOLDOUT-image' : (product.status == 'RESERVED' ? 'RESERVED-image' : '')}"
+                                         class="product-image">
+                                </th:block>
+                                <th:block th:if="${dto.firstImageId == null}">
+                                    <img src="/images/default.png"
+                                         alt="기본 이미지"
+                                         th:classappend="${product.status == 'SOLDOUT' ? 'SOLDOUT-image' : (product.status == 'RESERVED' ? 'RESERVED-image' : '')}"
+                                         class="product-image">
+                                </th:block>
+                                <th:block th:if="${product.status == 'SOLDOUT'}">
+                                    <div class="SOLDOUT-overlay">판매 완료</div>
+                                </th:block>
+                                <th:block th:if="${product.status == 'RESERVED'}">
+                                    <div class="RESERVED-overlay">판매 예약</div>
+                                </th:block>
+                            </div>
+                        </a>
+                        <!-- 상품 제목과 가격 -->
+                        <p class="product-title" th:text="${product.title}"></p>
+                        <span class="product-price" th:text="${product.sellPrice + '원'}"></span>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+
+        <div id="reviewsTab" class="tab-content" style="display: none;">
+            <h2>상점 후기</h2>
+            <div class="reviews">
+                <ul>
+                    <label>평균 별점</label>
+                    <span>
+                        <div class="rating">
+                            <!-- 완전히 채워진 별 -->
+                            <span th:if="${fullStars > 0}" th:each="star : ${#numbers.sequence(1, fullStars)}">
+                                <span class="star" style="--percent: 100%;"></span>
+                            </span>
+
+                            <!-- 부분적으로 채워진 별 -->
+                            <span th:if="${partialStarStyle != '--percent: 0.00%'}">
+                                <span class="star" th:style="${partialStarStyle}"></span>
+                            </span>
+
+                            <!-- 비어 있는 별 -->
+                            <span th:each="star : ${#numbers.sequence(fullStars + (partialStarStyle == '--percent: 0.00%' ? 1 : 2), 5)}"
+                                  th:if="${fullStars + (partialStarStyle == '--percent: 0.00%' ? 1 : 2) <= 5}">
+                                <span class="star" style="--percent: 0%;"></span>
+                            </span>
+                            (<span id="averageScore"></span>)
+                        </div>
+                    </span><br>
+                    <!-- 리뷰 목록 출력 -->
+                    <th:block th:each="review, iterStat : ${reviews}">
+                        <li>
+                            <div class="review-header">
+                                <!-- 인덱스를 활용하여 프로필 이미지 URL 매칭 -->
+                                <img th:src="@{|${profileImageUrls[iterStat.index]}|}" alt="Profile Image" class="profile-image">
+                                <p class="author-name" th:text="${review.authorUsername}"></p> <!-- 작성자 이름 -->
+                            </div>
+                            <h3 th:text="${review.product.title}"></h3> <!-- 상품 제목 -->
+                            <span>평가:<span class="stars">
+                <!-- 별점 표시 -->
+                <th:block th:each="star : ${#numbers.sequence(1, 5)}">
+                    <span th:if="${star <= review.evaluation.score}">★</span>
+                    <span th:if="${star > review.evaluation.score}">☆</span>
+                </th:block>
+            </span></span>
+                            <p th:text="${review.message}"></p> <!-- 리뷰 내용 -->
+                        </li>
+                    </th:block>
+                </ul>
+            </div>
+        </div>
+
+        <div id="favoritesTab" class="tab-content" style="display: none;">
+            <h2>찜 목록</h2>
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>사진</th>
+                    <th>작성자</th>
+                    <th>상품명</th>
+                    <th>작성일</th>
+                    <th>찜 취소</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="product : ${favoriteProducts}">
+                    <td>
+                        <th:block th:each="dto : ${productDTOList}" th:if="${dto.productId == product.productId}">
+                            <a th:href="@{/product/read/{productId}(productId=${dto.productId})}" class="product-link">
+                                <div class="product-image-container">
+                                    <th:block th:if="${dto.firstImageId != null}">
+                                        <img th:src="@{/product/images/{imageId}(imageId=${dto.firstImageId})}"
+                                             alt="상품 이미지"
+                                             th:classappend="${product.status == 'SOLDOUT' ? 'SOLDOUT-image' : (product.status == 'RESERVED' ? 'RESERVED-image' : '')}"
+                                             class="favorite-image">
+                                    </th:block>
+                                    <th:block th:if="${dto.firstImageId == null}">
+                                        <img src="/images/default.png"
+                                             alt="기본 이미지"
+                                             class="favorite-image">
+                                    </th:block>
+                                    <!-- 상태별 오버레이 텍스트 -->
+                                    <th:block th:if="${product.status == 'SOLDOUT' or product.status == 'RESERVED'}">
+                                        <div th:classappend="${product.status == 'SOLDOUT' ? 'SOLDOUT-overlay' : 'RESERVED-overlay'}">
+                                            <span th:text="${product.status == 'SOLDOUT' ? '판매 완료' : '판매 예약'}"></span>
+                                        </div>
+                                    </th:block>
+                                </div>
+                            </a>
+                        </th:block>
+                    </td>
+                    <td th:text="${product.member.getName()}"></td>
+                    <td>
+                        <a th:href="@{/product/read/{productId}(productId=${product.productId})}">[[${product.title}]]</a>
+                    </td>
+                    <td th:text="${#temporals.format(product.refreshedAt, 'yyyy-MM-dd HH:mm')}"></td>
+                    <td>
+                        <i class="favorite-icon liked"
+                           th:id="'fav-icon-' + ${product.productId}"
+                           th:onclick="'removeFavorite(' + ${product.productId} + ')'"
+                           style="cursor: pointer; color: red;">
+                            ❤️
+                        </i>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <script>
+            function showTab(tabId) {
+                // 모든 탭 숨김
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.style.display = 'none';
+                });
+
+                // 선택된 탭 표시
+                document.getElementById(tabId).style.display = 'block';
+            }
+
+            function removeFavorite(productId) {
+                const url = '/product/favorite/' + productId + '/remove';
+                const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('HTTP status ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            // 행 삭제
+                            const row = document.getElementById('fav-icon-' + productId).closest('tr');
+                            row.remove();
+                        } else {
+                            alert('찜 삭제에 실패했습니다.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('오류가 발생했습니다. 다시 시도해주세요.');
+                    });
+            }
+
+            function openBlackList() {
+                const url = '/member/black'; // 새 창에서 열 URL
+                const windowFeatures = 'width=400,height=400,scrollbars=yes,resizable=yes';
+                window.open(url, 'BlackListWindow', windowFeatures);
+            }
+
+            // 페이지 로드 후 모든 날짜 포맷팅
+            document.addEventListener('DOMContentLoaded', function () {
+                const dateElements = document.querySelectorAll('.formatted-date');
+
+                dateElements.forEach(function (element) {
+                    const dateStr = element.textContent;
+                    const date = new Date(dateStr); // 서버에서 받은 날짜를 Date 객체로 변환
+                    const formattedDate = new Intl.DateTimeFormat('ko-KR').format(date); // 년-월-일 포맷
+
+                    element.textContent = formattedDate; // 포맷팅된 날짜로 변경
+                });
+            });
+                        // Thymeleaf 변수로 memberDTO.averageScore를 가져옵니다
+            var averageScore = [[${memberDTO.averageScore}]];
+
+            // 소수점 둘째 자리까지 반올림하여 포맷
+            var formattedScore = averageScore.toFixed(2);
+
+            // 결과를 span 요소에 삽입
+            document.getElementById('averageScore').textContent = formattedScore;
+        </script>
+        </body>
+    </th:block>
+</th:block>
+        <div th:replace="layout/footer :: footer"></div>
+<style>
+    .footer {
+        margin-top: 20px;
+        background-color: #333;
+        color: white;
+        text-align: center;
+        padding: 10px;
+        height: 200px;
+    }
+</style>
+</html>

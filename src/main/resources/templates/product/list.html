@@ -1,0 +1,419 @@
+<div th:replace="~{layout/head}"></div>
+<div th:replace="layout/sidebar :: sidebar"></div>
+<style>
+
+    /* 전체 페이지 스타일 */
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: white;
+        color: #333;
+    }
+    h2 {
+        font-size: 2.5rem;
+        text-align: center;
+        color: #4A4A4A;
+        margin-bottom: 30px;
+    }
+
+    /* 상품 리스트 테이블 */
+    .table {
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
+        background-color: #ffffff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .table th, .table td {
+        padding: 15px;
+        text-align: center;
+    }
+
+    .table th {
+        background-color: #FF7F50;
+        color: white;
+        font-weight: bold;
+    }
+
+    .table td {
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        color: #495057;
+    }
+
+    .table-striped tbody tr:nth-child(odd) {
+        background-color: #f1f3f5;
+    }
+
+    .btn {
+        margin: 5px;
+        font-size: 0.9rem;
+    }
+
+    .btn-outline-primary {
+        border-color: #32E0C4;
+        font-weight: bold;
+        color: black;
+        background-color: #32E0C4;
+        margin-top: -110px;
+        margin-right: 30px;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #FF7F50;
+        color: white;
+    }
+
+    .btn-info {
+        background-color: #17a2b8;
+        color: white;
+        border-radius: 5px;
+    }
+
+    .btn-info:hover {
+        background-color: #138496;
+    }
+
+    .no-image {
+        color: #6c757d;
+        font-size: 1rem;
+        font-weight: bold;
+    }
+    .favorite-icon,
+    .favorite-icon liked,
+    .favorite-icon not-liked {
+        position: absolute;
+        cursor: pointer;
+        top: 5%; /* 고정된 비율로 위치 */
+        right: 5%; /* 고정된 비율로 위치 */
+        width: 10%;
+        height: auto;
+    }
+
+    .favorite-count {
+        position: absolute;
+        top: 12%; /* 고정된 비율로 위치 */
+        right: 5%; /* 고정된 비율로 위치 */
+        width: 2%;
+        height: auto;
+        color: black;
+    }
+    .RESERVED-image,
+    .SOLDOUT-image {
+        opacity: 0.3; /* 불투명도 조정 */
+    }
+    .RESERVED-overlay,
+    .SOLDOUT-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* 반투명 검정 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 1rem;
+        font-weight: bold;
+        border-radius: 8px; /* 모서리 둥글게 */
+    }
+
+    /* 모달 창 */
+    .member-modal2 {
+        position: absolute;
+        display: none;
+        background-color: white;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+        z-index: 1000;
+        width: 200px;
+    }
+
+    .member-modal-header {
+        font-weight: bold;
+        font-size: 1rem;
+        margin-bottom: 10px;
+    }
+
+    .member-modal-close {
+        cursor: pointer;
+        float: right;
+        font-size: 1.2rem;
+        color: #aaa;
+    }
+
+    .member-modal-close:hover {
+        color: #000;
+    }
+
+    .product-list {
+        margin-top: -100px;
+    }
+
+
+    /* 4개씩 보이도록 설정 */
+    .product-list .products {
+        display: grid;
+        border: 1px solid #32E0C4;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px; /* 항목 간 간격 */
+        padding: 20px;
+    }
+
+    .product{
+        border: 1px solid #32E0C4;
+        border-radius: 4px;
+    }
+
+    /* 상품 이미지 크기 설정 */
+    .product-image {
+        width: 100%; /* 이미지의 가로 크기를 컨테이너에 맞추기 */
+        height: 300px; /* 고정 높이 설정 */
+        border-bottom: 1px solid #32E0C4;
+    }
+
+    /* 상품 이미지 컨테이너 설정 */
+    .product-image-container {
+        position: relative;
+        overflow: hidden; /* 찜 아이콘이 이미지 위에 겹치지 않도록 숨김 처리 */
+        display: flex;
+        justify-content: center; /* 이미지가 중앙에 오도록 설정 */
+        align-items: center; /* 세로 방향으로 중앙 정렬 */
+    }
+
+    /* 상품 정보 스타일링 */
+    .product-title,
+    .product-price,
+    .product-author {
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    .product-price {
+        display: block;
+        color: #ff6f61;
+        font-weight: bold;
+    }
+
+    /* 상품 제목과 가격 아래 간격 추가 */
+    .product-author {
+        margin-top: 5px;
+    }
+
+    /* 반응형 설정: 화면 크기에 따라 4개씩 표시 */
+    @media (max-width: 1200px) {
+        .product-list .products {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (max-width: 900px) {
+        .product-list .products {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .product-list .products {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+</head>
+<th:block th:replace="~{/layout/basic::setContent(~{this::content})}">
+    <th:block th:fragment="content">
+        <body>
+        <div class="container">
+            <section class="product-list">
+                <h2>게시물</h2>
+            <div class="d-flex justify-content-end mb-4">
+                <a th:if="${#authentication.principal != null}" th:href="@{/product/register}">
+                    <button type="button" class="btn btn-outline-primary">상품 등록</button>
+                </a>
+                <a th:if="${#authentication.principal == null}" href="/member/login">
+                    <button type="button" class="btn btn-outline-primary">로그인 후 상품 등록</button>
+                </a>
+            </div>
+                <div class="products">
+                    <div class="product" th:each="product : ${products}">
+                        <th:block th:each="dto : ${productDTOList}" th:if="${dto.productId == product.productId}">
+                            <div class="product-image-container">
+                                <!-- 찜 아이콘 -->
+                                <th:block th:if="${authDTO != null}">
+                                    <th:block th:if="${favoriteStatusMap[product.productId] != null}">
+                                        <img class="favorite-icon liked"
+                                             th:id="'fav-icon-' + ${product.productId}"
+                                             th:src="@{${favoriteStatusMap[product.productId] ? '/images/like.png' : '/images/notlike.png'}}"
+                                             th:onclick="'toggleFavorite(' + ${product.productId} + ',' + ${favoriteStatusMap[product.productId]} + ')'"
+                                             alt="찜 아이콘"/>
+                                        <span class="favorite-count"
+                                              th:id="'favorite-count-' + ${product.productId}"
+                                              th:text="${product.favoriteCount}">0</span>
+                                    </th:block>
+                                    <th:block th:if="${favoriteStatusMap[product.productId] == null}">
+                                        <img class="favorite-icon not-liked"
+                                             th:id="'fav-icon-' + ${product.productId}"
+                                             th:src="@{/images/notlike.png}"
+                                             alt="찜하지 않음 아이콘"/>
+                                        <span class="favorite-count"
+                                              th:id="'favorite-count-' + ${product.productId}"
+                                              th:text="${product.favoriteCount}">0</span>
+                                    </th:block>
+                                </th:block>
+                                <th:block th:if="${authDTO == null}">
+                                    <a href="javascript:void(0);" onclick="redirectToLogin();">
+                                        <img class="favorite-icon"
+                                             th:id="'fav-icon-' + ${product.productId}"
+                                             th:src="@{/images/notlike.png}"
+
+                                             alt="찜 아이콘 (로그인 필요)"/>
+                                        </img>
+                                    </a>
+                                    <span class="favorite-count"
+                                          th:id="'favorite-count-' + ${product.productId}"
+                                          th:text="${product.favoriteCount}">0</span>
+                                </th:block>
+                                <!-- 상품 이미지 -->
+                                <a th:href="@{/product/read/{productId}(productId=${dto.productId})}" class="product-link">
+                                    <th:block th:if="${dto.firstImageId != null}">
+                                        <img th:src="@{/product/images/{imageId}(imageId=${dto.firstImageId})}"
+                                             alt="상품 이미지"
+                                             th:classappend="${product.status == 'SOLDOUT' ? 'SOLDOUT-image' : (product.status == 'RESERVED' ? 'RESERVED-image' : '')}"
+                                             class="product-image">
+                                    </th:block>
+                                    <th:block th:if="${dto.firstImageId == null}">
+                                        <img src="/images/default.png"
+                                             alt="기본 이미지"
+                                             class="product-image">
+                                    </th:block>
+                                    <th:block th:if="${product.status == 'SOLDOUT'}">
+                                        <div class="SOLDOUT-overlay">판매 완료</div>
+                                    </th:block>
+                                    <th:block th:if="${product.status == 'RESERVED'}">
+                                        <div class="RESERVED-overlay">판매 예약</div>
+                                    </th:block>
+                                </a>
+                            </div>
+                        </th:block>
+                        <!-- 상품 제목과 가격 -->
+                        <p class="product-title" th:text="${product.title}"></p>
+                        <span class="product-price" th:text="${product.sellPrice + '원'}"></span>
+                    </div>
+                </div>
+            </section>
+
+
+        </div>
+        <!-- 페이지네이션 컨테이너 -->
+        <div class="pagination-container" th:if="${productPage.totalPages > 1}">
+            <ul class="pagination justify-content-center">
+                <!-- 이전 버튼 -->
+                <li th:classappend="${productPage.first} ? 'disabled' : ''" class="page-item">
+                    <a th:href="@{'/product/list?page=' + (${productPage.number - 1})
+                         + '&searchKeyword=' + ${searchKeyword ?: ''}
+                         + '&categoryId=' + ${categoryId ?: ''}
+                         + '&sortOrder=' + ${sortOrder ?: ''}
+                         + '&includeSoldOut=' + ${includeSoldOut}}"
+                       class="page-link" th:if="${!productPage.first}">이전</a>
+                    <span th:if="${productPage.first}" class="page-link">이전</span>
+                </li>
+
+                <!-- 페이지 번호 -->
+                <li th:each="i : ${#numbers.sequence(0, productPage.totalPages - 1)}"
+                    th:classappend="${i == productPage.number} ? 'active' : ''" class="page-item">
+                    <a th:href="@{'/product/list?page=' + ${i}
+                         + '&searchKeyword=' + ${searchKeyword ?: ''}
+                         + '&categoryId=' + ${categoryId ?: ''}
+                         + '&sortOrder=' + ${sortOrder ?: ''}
+                         + '&includeSoldOut=' + ${includeSoldOut}}"
+                       class="page-link" th:text="${i + 1}"></a>
+                </li>
+
+                <!-- 다음 버튼 -->
+                <li th:classappend="${productPage.last} ? 'disabled' : ''" class="page-item">
+                    <a th:href="@{'/product/list?page=' + (${productPage.number + 1})
+                         + '&searchKeyword=' + ${searchKeyword ?: ''}
+                         + '&categoryId=' + ${categoryId ?: ''}
+                         + '&sortOrder=' + ${sortOrder ?: ''}
+                         + '&includeSoldOut=' + ${includeSoldOut}}"
+                       class="page-link" th:if="${!productPage.last}">다음</a>
+                    <span th:if="${productPage.last}" class="page-link">다음</span>
+                </li>
+            </ul>
+        </div>
+
+
+
+        <!-- 데이터가 없을 때 -->
+        <div class="pagination-container" th:if="${productPage.totalPages == 1}">
+            <ul class="pagination justify-content-center">
+                <li class="page-item active">
+                    <span class="page-link">1</span>
+                </li>
+            </ul>
+        </div>
+
+
+        </body>
+    </th:block>
+</th:block>
+        <div th:replace="layout/footer :: footer"></div>
+<script>
+    // 로그인 여부를 확인하는 변수 정의
+    let isLoggedIn = /*[[${authDTO != null}]]*/ true;
+
+    function toggleFavorite(productId, isFavorited) {
+        if (!isLoggedIn) {
+            alert("로그인 후 찜 기능을 사용할 수 있습니다.");
+            return;  // 로그인하지 않은 경우 기능 실행 중지
+        }
+
+        if (isFavorited == null) {
+            isFavorited = false;  // 기본값 처리
+        }
+
+        let url = '/product/favorite/' + productId; // 찜 상태 토글을 위한 동일한 엔드포인트
+
+        console.log("URL to fetch: " + url);  // 요청 URL 확인
+
+        // CSRF 토큰을 meta 태그에서 읽어오기
+        let csrfToken = document.querySelector('meta[name="_csrf"]').content;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,  // CSRF 토큰 추가
+            },
+        })
+            .then(response => response.json())
+            .then(data => {
+                const icon = document.getElementById('fav-icon-' + productId);
+                const count = document.querySelector(`#fav-icon-${productId} + span`);
+
+                // 찜 상태에 따라 하트 아이콘 이미지 변경
+                if (data.isFavorited) {
+                    icon.src = '/images/like.png';  // 찜 상태일 때
+                } else {
+                    icon.src = '/images/notlike.png';  // 찜하지 않았을 때
+                }
+                // 찜한 사용자 수 갱신
+                count.textContent = data.favoriteCount;
+
+                console.log('Response Data:', data); // 서버 응답 데이터 확인
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+
+            function redirectToLogin() {
+            const currentUrl = window.location.href; // 현재 페이지 URL 가져오기
+            const loginUrl = `/member/login?redirect=` + encodeURIComponent(currentUrl); // 리다이렉트 URL 생성
+            window.location.href = loginUrl; // 로그인 페이지로 이동
+        }
+</script>
+</html>

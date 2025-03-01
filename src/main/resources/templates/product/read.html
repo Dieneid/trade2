@@ -1,0 +1,597 @@
+<div th:replace="~{layout/head}"></div>
+<link rel="stylesheet" href="/css/read.css">
+</head>
+<div th:replace="layout/sidebar :: sidebar"></div>
+<th:block th:replace="~{/layout/basic::setContent(~{this::content})}">
+    <th:block th:fragment="content">
+        <body>
+        <div class="read-container">
+            <!-- 상품 정보 영역 -->
+            <div class="product-details">
+                <div class="product-info">
+                    <div id="imageCarousel" class="carousel slide"
+                         style="width: 300px; height: 300px; overflow: hidden; position: relative;">
+                        <!-- Carousel inner -->
+                        <div class="carousel-inner">
+                            <!-- JavaScript로 동적으로 이미지 추가 -->
+                        </div>
+                        <!-- 판매 예약 레이어 -->
+                        <div id="RESERVED-overlay" class="RESERVED-overlay" style="display: none;">
+                            <p>판매 예약</p>
+                        </div>
+                        <!-- 판매 완료 레이어 -->
+                        <div id="SOLDOUT-overlay" class="SOLDOUT-overlay" style="display: none;">
+                            <p>판매 완료</p>
+                        </div>
+                        <!-- Left and Right Controls -->
+                        <button id="carouselPrev" class="carousel-control-prev" type="button"
+                                data-bs-target="#imageCarousel" data-bs-slide="prev" style="display: none;">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button id="carouselNext" class="carousel-control-next" type="button"
+                                data-bs-target="#imageCarousel" data-bs-slide="next" style="display: none;">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+
+                        <!-- Image Count -->
+                        <div id="image-count"
+                             style="position: absolute; bottom: 10px; right: 10px; background: rgba(0, 0, 0, 0.5); color: white; padding: 5px; border-radius: 5px;">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="form-group">
+                            <label>
+                                <h2 th:text="${product.title}"
+                                    style="font-size: 4rem; display: inline-block; margin-right: 10px;">상품명</h2>
+
+
+                                <th:block th:if="${authDTO == null}">
+                                    <a href="javascript:void(0);" onclick="redirectToLogin();">
+                                        <span style="display: inline-block; vertical-align: middle;">
+                                            <img class="favorite-icon"
+                                                 th:id="'fav-icon-' + ${product.productId}"
+                                                 th:src="@{/images/notlike.png}"
+                                                 alt="찜 아이콘 (로그인 필요)"
+                                                 style="vertical-align: middle;"/>
+                                        </span>
+                                    </a>
+                                </th:block>
+                        <!-- 찜 아이콘과 카운트 -->
+                        <th:block th:if="${authDTO != null}">
+                            <th:block th:if="${favoriteStatusMap[product.productId] != null}">
+                                    <span style="display: inline-block; vertical-align: middle;">
+                                        <img class="favorite-icon liked"
+                                             th:id="'fav-icon-' + ${product.productId}"
+                                             th:src="@{${favoriteStatusMap[product.productId] ? '/images/like.png' : '/images/notlike.png'}}"
+                                             th:onclick="'toggleFavorite(' + ${product.productId} + ',' + ${favoriteStatusMap[product.productId]} + ')'"
+                                             alt="찜 아이콘"
+                                             style="vertical-align: middle;"/>
+                                    </span>
+                            </th:block>
+                            <th:block th:if="${favoriteStatusMap[product.productId] == null}">
+                                    <span style="display: inline-block; vertical-align: middle;">
+                                        <img class="favorite-icon not-liked"
+                                             th:id="'fav-icon-' + ${product.productId}"
+                                             th:src="@{/images/notlike.png}"
+                                             alt="찜하지 않음 아이콘"
+                                             style="vertical-align: middle;"/>
+                                    </span>
+                            </th:block>
+                        </th:block>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            </br>
+                            <h2 id="sellPrice" th:text="${formattedSellPrice}+' 원'" style="font-size: 3rem">가격</h2>
+                        </div>
+                        <hr>
+
+                        <div class="form-group">
+
+                            <a th:href="${authDTO != null && authDTO.memberId == product.memberId} ? '/member/mypage' : '/member/memberpage/' + ${product.memberId}"
+                               th:text="${product.memberName}"
+                               th:attr="data-member-id=${product.memberId}">
+                            </a>
+
+                        </div>
+                        <!-- 조회수 아이콘과 카운트 -->
+                        <div class="view-stat">
+                            ❤️ <span class="favorite-allCount" th:text="${product.favoriteCount}">0</span>
+                            👁️ <span class="view-count" th:text="${product.viewCount}">0</span>
+                            🕖 <span class="create-date" th:text="${#temporals.format(product.refreshedAt, 'yyyy-MM-dd HH:mm')}"></span>
+                        </div>
+                        <!-- 수정하기, 삭제하기, 끌올 버튼은 isOwner가 true일 때만 표시 -->
+                        <div class="owner-actions" th:if="${isOwner}">
+                            <a th:href="@{/product/edit/{productId}(productId=${product.productId})}"
+                               class="btn btn-success">수정하기</a>
+                            <form th:action="@{/product/delete/{productId}(productId=${product.productId})}"
+                                  method="get"
+                                  style="display: inline;">
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('정말 삭제하시겠습니까?')">
+                                    삭제하기
+                                </button>
+                            </form>
+
+                            <form th:action="@{/product/read/{productId}(productId=${product.productId})}" method="post"
+                                  style="display: inline;" th:if="${product.status != 'SOLDOUT'}">
+                                <button type="submit" class="btn btn-warning">끌올</button>
+                            </form>
+                            <form th:action="@{/product/reserved/{productId}(productId=${product.productId})}"
+                                  method="post"
+                                  style="display: inline;" th:if="${product.status == 'NEW'}">
+                                <button type="submit" class="btn btn-warning">판매 예약</button>
+                            </form>
+                            <form th:action="@{/product/reserved/{productId}(productId=${product.productId})}"
+                                  method="post"
+                                  style="display: inline;" th:if="${product.status == 'RESERVED'}">
+                                <button type="submit" class="btn btn-warning">판매 예약 취소</button>
+                            </form>
+                        </div>
+                        <!-- 구매하기 버튼은 isOwner가 false일 때만 표시 -->
+                        <div class="buy-button a" th:if="${!isOwner and product.status == 'NEW'}">
+                            <a th:href="@{/product/complete/{productId}(productId=${product.productId})}"
+                               class="btn btn-primary">구매하기</a>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#chatModal"
+                                    th:data-chat-room-id="${product.productId}"
+                                    th:data-sender-id="${memberId}"
+                                    th:data-receiver-id="${product.memberId}"
+                                    th:data-sender-name="${memberName}"
+                                    th:data-receiver-name="${product.memberName}"
+                                    th:data-auth-dto="${authDTO}"
+                                    id="openChatButton" th:if="${!isOwner}">
+                                채팅
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+
+                <hr style="color:black;">
+                <p style="font-size: 1.8rem; margin-bottom: 10px;  padding-left: 20px;">상품 정보</p>
+                <div class="description-container" style="margin-top:0;">
+                    <div class="form-group">
+                        <p th:text="${product.description}">상품 정보</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="back-button">
+            <a th:href="@{/product/list}" class="btn btn-secondary">목록으로 돌아가기</a>
+        </div>
+
+
+        <!-- 채팅 모달 -->
+        <div class="modal fade" id="chatModal" tabindex="-1" aria-labelledby="chatModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="chatModalLabel">1:1 채팅방</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="chat-box">
+                            <div id="messages" class="messages" style="height: 300px; overflow-y: auto;"></div>
+                        </div>
+                        <div class="message-box">
+                            <textarea id="messageContent" class="form-control" rows="2" placeholder="메시지를 입력하세요"
+                                      required></textarea>
+                            <button id="sendMessage" class="message-submit" onclick="sendMessage()">전송</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        </body>
+    </th:block>
+</th:block>
+<div th:replace="layout/footer :: footer"></div>
+<script>
+    let currentRoomId = null;
+    let senderId = null;
+    let receiverId = null;
+    let senderName = null;
+    let receiverName = null;
+    let stompClient = null;
+
+    // 모달이 열리면 채팅방 ID 설정
+    $('#chatModal').on('shown.bs.modal', function (event) {
+        const button = document.getElementById('openChatButton');  // 모달을 여는 버튼
+        const productId = button.getAttribute('data-chat-room-id');  // 버튼에서 상품 ID 가져오기
+        senderId = button.getAttribute('data-sender-id');
+        receiverId = button.getAttribute('data-receiver-id');
+        senderName = button.getAttribute('data-sender-name');
+        receiverName = button.getAttribute('data-receiver-name');
+        const authDTO = button.getAttribute('data-auth-dto'); // authDTO 가져오기
+
+        // authDTO가 null인지 확인
+        if (!authDTO) {
+            window.location.href = "/member/login"; // 로그인 페이지로 리디렉션
+            return; // 추가 작업 중단
+        }
+
+        console.log('productId:', productId);
+
+        const chatModalLabel = document.getElementById('chatModalLabel');
+        chatModalLabel.textContent = `${receiverName}님과의 채팅`;
+        if (!productId) {
+            alert("상품이 선택되지 않았습니다.");
+            return;
+        }
+
+        // 상품 ID를 사용해 채팅방 ID를 서버에서 가져옵니다.
+        fetch(`/chat/chatRoom/${productId}`)  // URL 경로 수정
+            .then(response => response.json())
+            .then(data => {
+                const chatRoomId = data.chatRoomId;
+                if (!chatRoomId) {
+                    alert("채팅방을 생성할 수 없습니다.");
+                    return;
+                }
+
+                // 채팅방 ID 설정
+                currentRoomId = chatRoomId;
+
+                // 채팅방 메시지 불러오기
+                loadMessages(currentRoomId);
+
+                // WebSocket 초기화 및 연결
+                initializeWebSocket(currentRoomId);
+            })
+            .catch(error => {
+                console.error('채팅방 정보 불러오기 오류:', error);
+                alert("채팅방을 불러오는 데 오류가 발생했습니다.");
+            });
+    });
+
+    let memberId = [[${product.memberId}]];
+    // 채팅방 메시지 불러오기
+    function loadMessages(chatRoomId) {
+        console.log("Loading messages for chatRoomId:", chatRoomId);
+        fetch(`/chat/messages/${chatRoomId}`)
+            .then(response => {
+                if (!response.ok) {
+                    // 서버 응답이 200번대가 아닌 경우
+                    throw new Error(`서버 오류: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.messages) {
+                    const messageListContainer = document.getElementById('messages');
+                    messageListContainer.innerHTML = ''; // 기존 메시지 초기화
+
+                    data.messages.forEach(message => {
+                        const messageItem = document.createElement('div');
+                        messageItem.classList.add(
+                            'message',
+                            message.senderId === memberId ? 'sent' : 'received'
+                        );
+                        messageItem.innerHTML = `
+                            <p>${message.content}</p>
+                            <span class="message-timestamp">${new Date(message.createdAt).toLocaleString()}</span>
+                        `;
+                        messageListContainer.appendChild(messageItem);
+                    });
+
+                    // 메시지 로드 후 스크롤 이동
+                    setTimeout(() => {
+                        messageListContainer.scrollTop = messageListContainer.scrollHeight;
+                    }, 100);
+                } else {
+                    console.error('No messages found in the response.');
+                    alert('메시지를 불러오는 데 오류가 발생했습니다. (데이터 없음)');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading messages:', error);
+                alert(`메시지를 불러오는 데 오류가 발생했습니다: ${error.message}`);
+            });
+    }
+
+    // 새로운 메시지 표시
+    function displayNewMessage(message) {
+        const messageListContainer = document.getElementById('messages');
+        const messageItem = document.createElement('div');
+        messageItem.classList.add(
+            'message',
+            message.senderId === memberId ? 'sent' : 'received'
+        );
+        messageItem.innerHTML = `
+           <p>${message.content}</p>
+           <span class="message-timestamp">${new Date(message.createdAt).toLocaleString()}</span>
+        `;
+        messageListContainer.appendChild(messageItem);
+
+        // 스크롤을 마지막 메시지로 이동
+        messageListContainer.scrollTop = messageListContainer.scrollHeight;
+    }
+
+    // 메시지 전송 함수
+    function sendMessage() {
+        const messageContent = document.getElementById('messageContent').value.trim();
+        const messageListContainer = document.getElementById('messages'); // 메시지 리스트
+        if (!messageContent || !messageListContainer) {
+            console.error('Required input or message list element not found.');
+            return;
+        }
+
+        if (!messageContent) {
+            alert("메시지를 입력해주세요.");
+            return;
+        }
+        if (!currentRoomId) {  // currentRoomId가 null인 경우
+            alert("채팅방이 선택되지 않았습니다.");
+            return;
+        }
+        // 전송할 메시지 데이터
+        const messageData = {
+            content: messageContent,
+            chatRoomId: currentRoomId,
+            senderId: senderId,          // 로그인된 사용자의 ID
+            receiverId: receiverId,        // 상품 소유자의 ID
+            senderName: senderName,      // 로그인된 사용자의 이름
+            receiverName: receiverName,    // 상품 소유자의 이름
+            createdAt: new Date().toISOString(), // 현재 시간
+            status: 'UNREAD'                       // 메시지는 읽지 않은 상태로 설정
+        };
+
+        stompClient.send('/pub/chat/send/chatRoom', {}, JSON.stringify(messageData));
+
+        // UI 업데이트 (보낸 메시지 표시)
+        const messageItem = document.createElement('div');
+        messageContent.value = ''; // 입력창 초기화
+        messageListContainer.scrollTop = messageListContainer.scrollHeight; // 마지막 메시지로 스크롤
+    }
+
+    // 채팅방의 상대방 ID 반환
+    function getReceiverIdForRoom(chatRoomId) {
+        const roomData = chatRoomData.find(room => room.chatRoomId === chatRoomId);
+        return roomData ? (roomData.senderId === memberId ? roomData.receiverId : roomData.senderId) : null;
+    }
+
+    // 채팅방의 상대방 이름 반환
+    function getReceiverNameForRoom(chatRoomId) {
+        const roomData = chatRoomData.find(room => room.chatRoomId === chatRoomId);
+        return roomData ? (roomData.senderId === memberId ? roomData.receiverName : roomData.senderName) : null;
+    }
+
+    // WebSocket 초기화 및 메시지 수신 처리
+    function initializeWebSocket(chatRoomId) {
+        if (stompClient && stompClient.connected) {
+            stompClient.subscribe(`/sub/chat/${chatRoomId}`, function (messageOutput) {
+                const message = JSON.parse(messageOutput.body);
+                if (message.chatRoomId === currentRoomId) {
+                    displayNewMessage(message);
+                }
+            });
+            return;
+        }
+        const socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function (frame) {
+            stompClient.subscribe(`/sub/chat/${chatRoomId}`, function (messageOutput) {
+                const message = JSON.parse(messageOutput.body);
+                if (message.chatRoomId === currentRoomId) {
+                    displayNewMessage(message);
+                }
+            });
+        });
+    }
+</script>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+            let productId = /*[[${product.productId}]]*/ 0; // 제품 ID
+            let images = /*[[${images}]]*/ []; // 이미지 배열
+            let carouselInner = document.querySelector('#imageCarousel .carousel-inner');
+            let imageCountElement = document.getElementById('image-count');
+            let prevButton = document.getElementById('carouselPrev');
+            let nextButton = document.getElementById('carouselNext');
+            let soldoutOverlay = document.getElementById('SOLDOUT-overlay');
+            let resevedOverlay = document.getElementById('RESERVED-overlay');
+            let csrfToken = document.querySelector('meta[name="_csrf"]').content;
+            let status = /*[[${product.status}]]*/ 'NEW'; // 서버에서 전달된 상태값
+            // 상태 업데이트 함수
+            function updateSoldoutStatus(status) {
+                if (!soldoutOverlay) {
+                    console.error("soldoutOverlay 요소를 찾을 수 없습니다.");
+                    return;
+                }
+
+                if (status == 'SOLDOUT') {
+                    soldoutOverlay.style.display = 'flex'; // 판매 완료 문구 표시
+                    document.querySelectorAll('.carousel-inner img').forEach(img => {
+                        img.classList.add('SOLDOUT');
+                    });
+                } else {
+                    soldoutOverlay.style.display = 'none'; // 판매 완료 문구 숨기기
+                    document.querySelectorAll('.carousel-inner img').forEach(img => {
+                        img.classList.remove('SOLDOUT');
+                    });
+                }
+                if (status === 'RESERVED') {
+                    resevedOverlay.style.display = 'flex'; // 판매 예약 문구 표시
+                    document.querySelectorAll('.carousel-inner img').forEach(img => {
+                        img.classList.add('RESERVED');
+                    });
+                } else {
+                    resevedOverlay.style.display = 'none'; // 판매 예약 문구 숨기기
+                    document.querySelectorAll('.carousel-inner img').forEach(img => {
+                        img.classList.remove('RESERVED');
+                    });
+                }
+            }
+
+            // 판매 예약 버튼 클릭 시 상태 변경 (RESERVED <-> NEW)
+            document.querySelector('#reserveButton')?.addEventListener('click', function () {
+                let currentStatus = status; // 현재 상태
+
+                if (currentStatus === 'RESERVED') {
+                    // 상태를 'NEW'로 변경하고 서버에 전달
+                    status = 'NEW';
+                    updateSoldoutStatus(status); // 상태 업데이트 함수 호출
+
+                    // 여기서 서버에 상태 변경 요청을 보낼 수 있습니다
+                    // 예시: fetch('/product/updateStatus', { method: 'POST', body: { status: 'NEW' } });
+                } else if (currentStatus === 'NEW') {
+                    // 상태를 'RESERVED'로 변경하고 서버에 전달
+                    status = 'RESERVED';
+                    updateSoldoutStatus(status); // 상태 업데이트 함수 호출
+
+                    // 여기서 서버에 상태 변경 요청을 보낼 수 있습니다
+                    // 예시: fetch('/product/updateStatus', { method: 'POST', body: { status: 'RESERVED' } });
+                }
+            });
+            updateSoldoutStatus(status);
+
+            // 이미지 갯수 업데이트
+            function updateImageCount(currentIndex) {
+                if (images.length > 0) {
+                    imageCountElement.textContent = `${currentIndex + 1} / ${images.length}`;
+                } else {
+                    imageCountElement.textContent = "이미지가 등록되어 있지 않습니다.";
+                }
+            }
+
+            // 카로셀에 이미지 채우기
+            function populateCarousel() {
+                carouselInner.innerHTML = "";
+                prevButton.style.display = 'none';
+                nextButton.style.display = 'none';
+
+                if (images.length > 0) {
+                    images.forEach((image, index) => {
+                        const carouselItem = document.createElement("div");
+                        carouselItem.className = `carousel-item ${index === 0 ? "active" : ""}`;
+                        carouselItem.innerHTML = `<img src="/product/display?fileName=${image.imgName}" alt="이미지 ${index + 1}" style="width: 300px; height: 300px;">`;
+                        carouselInner.appendChild(carouselItem);
+                    });
+
+                    updateImageCount(0); // 초기 카운트 설정
+
+                    if (images.length > 1) {
+                        prevButton.style.display = 'block';
+                        nextButton.style.display = 'block';
+                    }
+                } else {
+                    const carouselItem = document.createElement("div");
+                    carouselItem.className = "carousel-item active";
+                    carouselItem.innerHTML = `<img src="/images/default.png" class="d-block w-100" alt="기본 이미지" style="width: 100%; height: 100%;">`;
+                    carouselInner.appendChild(carouselItem);
+
+                    updateImageCount(0);
+                }
+
+                // 카로셀 이미지 변경 이벤트에 핸들러 추가
+                const carouselElement = document.querySelector("#imageCarousel");
+                carouselElement.addEventListener("slid.bs.carousel", function (event) {
+                    const activeIndex = Array.from(carouselInner.children).findIndex(item => item.classList.contains("active"));
+                    updateImageCount(activeIndex);
+                });
+            }
+
+            let buyButton = document.querySelector('.buy-button a');
+            if (buyButton) {
+                buyButton.addEventListener('click', function (e) {
+                    e.preventDefault(); // 기본 링크 클릭 동작 방지
+
+                    // 로그인 여부 확인
+                    fetch('/check-login', { // 로그인 상태를 확인하는 엔드포인트
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            let url1 = '/member/login';
+                            // 로그인 된 경우에만 구매 완료 처리
+                            let url = '/product/complete/' + productId;
+                            fetch(url, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': csrfToken,  // CSRF 토큰 추가
+                                },
+                            })
+                                .then(response => response.json()) // JSON 응답 처리
+                                .then(data => {
+                                    if (data.status === 'success') {
+                                        alert(data.message);
+                                        updateSoldoutStatus(true);  // 판매 완료 상태로 변경
+                                        // 구매 완료 후 해당 URL로 이동
+                                        window.location.href = url;
+                                    } else {
+                                        alert(data.message);
+                                    }
+                                })
+                                .catch(error => {
+                                    window.location.href = url1;
+                                });
+                        })
+                        .catch(error => {
+                            console.error('로그인 상태 확인 오류:', error);
+                            alert('로그인 상태 확인 중 오류가 발생했습니다.');
+                        });
+                    window.location.href = url1;
+                });
+            }
+
+
+            populateCarousel();  // 카로셀 이미지 초기화
+        }
+    );
+
+        // 로그인 여부를 확인하는 변수 정의
+    let isLoggedIn = /*[[${authDTO != null}]]*/ true;
+
+    function toggleFavorite(productId, isFavorited) {
+        if (!isLoggedIn) {
+            alert("로그인 후 찜 기능을 사용할 수 있습니다.");
+            return;  // 로그인하지 않은 경우 기능 실행 중지
+        }
+
+        if (isFavorited == null) {
+            isFavorited = false;  // 기본값 처리
+        }
+
+        let url = '/product/favorite/' + productId; // 찜 상태 토글을 위한 동일한 엔드포인트
+
+        console.log("URL to fetch: " + url);  // 요청 URL 확인
+
+        // CSRF 토큰을 meta 태그에서 읽어오기
+        let csrfToken = document.querySelector('meta[name="_csrf"]').content;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,  // CSRF 토큰 추가
+            },
+        })
+            .then(response => response.json())
+            .then(data => {
+                const icon = document.getElementById('fav-icon-' + productId);
+                const count = document.querySelector(`#fav-icon-${productId} + span`);
+
+                // 찜 상태에 따라 하트 아이콘 이미지 변경
+                if (data.isFavorited) {
+                    icon.src = '/images/like.png';  // 찜 상태일 때
+                } else {
+                    icon.src = '/images/notlike.png';  // 찜하지 않았을 때
+                }
+                // 찜한 사용자 수 갱신
+                count.textContent = data.favoriteCount;
+
+                console.log('Response Data:', data); // 서버 응답 데이터 확인
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+</script>
+</html>

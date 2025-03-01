@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>가격 제시</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<h1>가격 제시</h1>
+<input type="number" id="price" placeholder="가격 입력" />
+<button onclick="sendPriceOffer()">가격 제시</button>
+
+<h2>실시간 가격 제시</h2>
+<ul id="price-offers"></ul>
+
+<script>
+    let stompClient = null;
+
+    function connect() {
+        const socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function () {
+            console.log('Connected to WebSocket');
+            stompClient.subscribe('/off/price-offers', function (message) {
+                const priceOffer = JSON.parse(message.body);
+                displayPriceOffer(priceOffer);
+            });
+        });
+    }
+
+    function sendPriceOffer() {
+        const price = document.getElementById('price').value;
+        const priceOffer = {
+            memberId: 1, // 테스트용 회원 ID
+            productId: 1, // 테스트용 상품 ID
+            offeredPrice: price
+        };
+        stompClient.send('/rec/price-offer', {}, JSON.stringify(priceOffer));
+    }
+
+    function displayPriceOffer(offer) {
+        const list = document.getElementById('price-offers');
+        const li = document.createElement('li');
+        li.textContent = `사용자: ${offer.memberId}, 가격: ${offer.offeredPrice}, 수락 여부: ${offer.isAccept}`;
+        list.appendChild(li);
+    }
+
+    connect();
+</script>
+</body>
+</html>

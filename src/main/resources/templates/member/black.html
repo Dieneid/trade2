@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>차단하기</title>
+</head>
+<style>
+    .blackUI {
+      max-width: 600px;
+      margin: 30px auto;
+      padding: 20px;
+      border: 1px solid #32E0C4;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+        .blackUI2 {
+      max-width: 600px;
+      margin: 30px auto;
+      padding: 20px;
+      border: 1px solid #32E0C4;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+      h3 {
+        text-align: center;
+        font-size: 2rem;
+        color: #333;
+        margin-top: 30px;
+        margin-bottom: 20px;
+      }
+
+    <style>
+    .listUI {
+        margin-bottom: 10px; /* 행 간격 추가 */
+        padding: 10px 0; /* 내부 여백 추가 */
+        border-bottom: 1px solid #ddd; /* 행 구분선 추가 */
+    }
+
+    .listUI td {
+        padding: 10px; /* 각 셀의 내부 여백 */
+    }
+
+    /* 테이블 스타일 개선 */
+    table {
+        width: 100%; /* 테이블 넓이 */
+        border-collapse: collapse; /* 테두리 간격 제거 */
+    }
+
+    th, td {
+        text-align: left; /* 텍스트 정렬 */
+        padding: 10px; /* 내부 여백 */
+    }
+
+    th {
+        background-color: #f0f0f0; /* 헤더 배경색 */
+    }
+
+    tr:nth-child(even) {
+        background-color: #f9f9f9; /* 짝수 행 배경색 */
+    }
+</style>
+
+</style>
+<body>
+<h3>차단 목록</h3>
+<!--======================================================== 전체 수정 =========================================== -->
+<!--======================================================== 전체 수정 =========================================== -->
+<form class="blackUI" th:action="@{/member/blackDelete}" method="post">
+    <table>
+        <thead>
+        <tr>
+            <th><input type="checkbox" id="selectAll" onclick="toggleAll(this)" /></th>
+            <th>이름</th>
+            <th>차단 날짜</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${#lists.isEmpty(blackListDTOS)}">
+            <td colspan="4">등록된 블랙리스트가 없습니다.</td>
+        </tr>
+        <tr class="listUI" th:each="black : ${blackListDTOS}">
+            <td>
+                <input type="checkbox" name="blackListName" th:value="${black.name}" />
+            </td>
+            <td th:text="${black.name}">이름</td>
+            <td th:text="${#temporals.format(black.createdAt, 'yyyy-MM-dd HH:mm:ss')}">차단 날짜</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- 차단 해제 버튼 -->
+    <button type="submit">차단 해제</button>
+</form>
+
+<form class="blackUI2" th:action="@{/member/black}" th:method="post" th:object="${blackDTO}">
+
+    <label th:for="*{name}"></label>
+    <input type="text" name="name" th:field="*{name}" placeholder="차단할 사용자" />
+
+    <button type="submit" class="btn btn-outline-danger">차단 하기</button>
+</form>
+
+<div th:if="${message != null and !message.isEmpty()}" style="color: blue;">
+    <p th:text="${message}"></p>
+</div>
+<div th:if="${blackError != null and !blackError.isEmpty()}" style="color: red;">
+    <p th:text="${blackError}"></p>
+</div>
+
+<!-- 선택한 모든 항목을 토글하는 스크립트 -->
+<script>
+    function toggleAll(source) {
+        const checkboxes = document.querySelectorAll('input[name="blackListName"]');
+        checkboxes.forEach(checkbox => checkbox.checked = source.checked);
+    }
+</script>
+</body>
+</html>

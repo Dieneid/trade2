@@ -1,0 +1,360 @@
+<div th:replace="~{layout/head}"></div>
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+</head>
+<style>
+    .updateUI {
+        max-width: 600px;
+        margin: 30px auto;
+        padding: 20px;
+        border: 1px solid #32E0C4;
+        border-radius: 10px;
+        background-color: #f9f9f9;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 2rem;
+        color: #333;
+        margin-top: 30px;
+        margin-bottom: 20px;
+    }
+
+       label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    input[type="email"],
+    input[type="password"],
+    input[type="file"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    input[readonly] {
+        background-color: #e9ecef;
+        cursor: not-allowed;
+    }
+
+    button {
+        display: inline-block;
+        padding: 10px 20px;
+        font-size: 1rem;
+        color: #fff;
+        background-color: #007bff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+    }
+
+    .form-control {
+        width: 100%;
+    }
+
+    #defaultProfileSection img {
+        display: block;
+        margin: 0 auto;
+        border-radius: 10%;
+        border: 5px solid #3498db;
+    }
+
+    #profileContainer {
+    display: flex;           /* 플렉스박스 설정 */
+    justify-content: center; /* 수평 중앙 정렬 */
+    align-items: center;     /* 수직 중앙 정렬 */
+    text-align: center;      /* 텍스트 정렬 */
+    }
+
+    #profileContainer img {
+    border-radius: 10%;
+    display: block;          /* 블록 요소로 설정 */
+    margin: 0 auto;          /* 수평 중앙 정렬 */
+    }
+
+
+    #defaultProfileSection2 img {
+        display: block;
+        margin: 0 auto;
+        border-radius: 10%;
+        border: 5px solid #3498db;
+    }
+
+    #imagePreview {
+        display: block;
+        margin: 10px auto;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+    }
+
+    .status-message {
+        font-size: 0.9rem;
+        margin-top: -10px;
+        margin-bottom: 15px;
+    }
+
+    .status-message.success {
+        color: green;
+    }
+
+    .status-message.error {
+        color: red;
+    }
+
+    #registerPhoneNumber{
+        margin-bottom: -10px;
+    }
+
+    #findAddress{
+        margin-top: 20px;
+        margin-bottom: 10px;
+    }
+
+    #emailContainer {
+        display: flex;
+        gap: 10px;
+    }
+
+    #emailButton {
+        margin-bottom: 15px;
+    }
+
+    #profileCon{
+        display: flex;
+        width: 100%;
+        gap: 10px;
+    }
+
+    #profileImage {
+        flex: 2; /* 파일 입력 필드 너비 */
+        max-width: 426px; /* 최대 너비 제한 */
+    }
+
+    #uploadButton {
+        margin-top: 3px;
+        flex: 1; /* 버튼 너비 */
+        max-width: 100px;
+        max-height:40px;
+    }
+
+    #zipcode,
+    #address,
+    #detailAddress {
+        margin-top: 5px;
+    }
+
+    #uploadStatus {
+        margin-top: 10px;
+        font-size: 0.9rem;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    #deleteButton {
+        display: inline-block;
+        margin-top: -5px;
+        padding: 10px 20px;
+        font-size: 1rem;
+        color: white;
+        background-color: red;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+</style>
+<div th:replace="layout/sidebar :: sidebar"></div>
+<th:block th:replace="~{/layout/basic::setContent(~{this::content})}">
+    <th:block th:fragment="content">
+        <body>
+        <h1>내 정보</h1>
+            <form class="updateUI" th:action="@{/member/update}" th:method="post" th:object="${memberDTO}">
+
+                <div id="profileContainer">
+                    <img id="defaultProfileSection2" th:if="${memberDTO.profileImageUrl != null && memberDTO.profileImageUrl != ''}"
+                         th:src="@{${memberDTO.profileImageUrl}}"
+                         alt="프로필 사진"
+                         style="width: 200px; height: 200px; border: 5px solid #3498db;">
+                    <img id="defaultProfileSection" th:if="${memberDTO.profileImageUrl == null || memberDTO.profileImageUrl == ''}"
+                         src="/images/default.png"
+                         alt="기본 프로필 사진"
+                         style="width: 200px; height: 200px; border: 5px solid #3498db;">
+                </div>
+
+
+                <label for="profileImage">새로운 프로필 사진</label>
+                <img id="imagePreview" src="#" alt="이미지 미리보기"
+                     style="display:none; max-width: 200px; max-height: 200px; border: 1px solid #ccc; margin-top: 10px;"/><br>
+                <div id="profileCon">
+                    <input type="file" id="profileImage" name="profileImage" accept="image/*" class="form-control"/><br>
+                    <button type="button" id="uploadButton" class="btn btn-primary">업로드</button>
+                </div>
+                <p id="uploadStatus" style="color: green;"></p>
+
+                <input type="hidden" id="imageUrl" name="imageUrl" th:field="*{profileImageUrl}"/>
+
+                <label>이메일</label><br>
+                <span th:text="${memberDTO.email}"></span><br><br>
+
+                <label for="Name">닉네임</label>
+                <input type="text" id="Name" class="form-control" th:field="*{name}"/><br>
+
+                <div class="nav-item">
+                    <a th:href="@{/member/password}" class="btn btn-outline-primary">비밀 번호 변경</a>
+                </div>
+                <div th:if="${message}" style="color: blue;">
+                    <p th:text="${message}"></p>
+                </div>
+                <br>
+
+                <label for="PhoneNumber">전화번호</label>
+                <input type="text" id="PhoneNumber" class="form-control" th:field="*{phoneNumber}"/><br>
+
+                <button type="button" onclick="openZipSearch()">우편번호 찾기</button>
+                <br>
+                <label for="address">주소</label>
+                <input type="text" id="address" class="form-control" th:field="*{city}" readonly/><br>
+
+                <label for="detailAddress">상세 주소</label>
+                <input type="text" id="detailAddress" class="form-control" th:field="*{street}"/><br>
+
+                <label for="zipcode">우편 번호</label>
+                <input type="text" id="zipcode" class="form-control" th:field="*{zipcode}" readonly/><br>
+
+                <button type="submit">회원 정보 수정</button>
+                <input type="hidden" name="email" th:value="${memberDTO.email}">
+                <button id="deleteButton" type="button" class="btn btn-outline-danger" onclick="confirmDelete()">회원 탈퇴</button>
+                <div th:if="${error}" style="color: red;">
+                    <p th:text="${error}"></p>
+                </div>
+            </form>
+
+        </body>
+    </th:block>
+</th:block>
+        <div th:replace="layout/footer :: footer"></div>
+<script>
+    $(document).ready(function () {
+        var csrfToken = $("meta[name='_csrf']").attr("content");
+
+        function uploadImage() {
+            var formData = new FormData();
+            var fileInput = document.getElementById('profileImage');
+
+            if (fileInput.files.length === 0) {
+                $('#uploadStatus').text("파일을 선택해 주세요.");
+                return;
+            }
+
+            formData.append('file', fileInput.files[0]);
+
+            $.ajax({
+                url: '/upload/image',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken  // CSRF 토큰 추가
+                },
+                success: function (response) {
+                    if (response.url) {
+                        $('#imageUrl').val(response.url);
+                        $('#uploadStatus').text("파일 업로드 성공: ");  // 성공 시 메시지 출력
+                    } else {
+                        $('#uploadStatus').text('Error: ' + response.error());  // 에러 메시지 출력
+                    }
+                },
+                error: function (xhr, status, error) {
+                    $('#uploadStatus').text('Error: ' + error);  // 에러 메시지 출력
+                }
+            });
+        }
+
+        $('#uploadButton').on('click', function () {
+            uploadImage();
+        });
+    });
+
+    document.getElementById("profileImage").addEventListener("change", function () {
+        const file = this.files[0];
+        const preview = document.getElementById("imagePreview");
+
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                preview.src = e.target.result; // 파일 데이터를 미리보기 이미지로 설정
+                preview.style.display = "block"; // 이미지를 화면에 표시
+            };
+
+            reader.readAsDataURL(file); // 파일을 base64 데이터로 읽음
+        } else {
+            preview.src = "#"; // 초기화
+            preview.style.display = "none"; // 미리보기 숨김
+        }
+    });
+
+function openZipSearch() {
+    new daum.Postcode({
+        oncomplete: function (data) {
+            console.log("우편번호:", data.zonecode); // 우편번호 확인
+            console.log("도로명 주소:", data.roadAddress); // 도로명 주소 확인
+            console.log("지번 주소:", data.jibunAddress); // 지번 주소 확인
+
+            const zipcodeInput = document.getElementById('zipcode');
+            const addressInput = document.getElementById('address');
+            const detailAddressInput = document.getElementById('detailAddress');
+
+            if (zipcodeInput && addressInput) {
+                zipcodeInput.value = data.zonecode;
+                addressInput.value = data.roadAddress || data.jibunAddress;
+                detailAddressInput.focus();
+            } else {
+                console.error("입력창을 찾을 수 없습니다.");
+            }
+        }
+    }).open();
+}
+
+
+    function confirmDelete() {
+        if (confirm("정말 탈퇴 하시겠습니까?")) {
+            const email = document.querySelector("input[name='email']").value;
+            const form = document.createElement("form");
+            form.method = "get";
+            form.action = "/member/delete";
+
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "email";
+            input.value = email;
+            form.appendChild(input);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+}
+
+
+</script>
+</html>

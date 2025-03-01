@@ -1,0 +1,97 @@
+<div th:replace="~{layout/head}"></div>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css"/>
+</head>
+<div th:replace="layout/sidebar :: sidebar"></div>
+<th:block th:replace="~{/layout/basic::setContent(~{this::content})}">
+    <th:block th:fragment="content">
+        <body>
+        <div class="container mt-5">
+            <h1 class="mb-4">찜 목록</h1>
+
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>사진</th>
+                    <th>작성자</th>
+                    <th>상품명</th>
+                    <th>찜 취소</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="product : ${favoriteProducts}">
+                    <td th:text="${product.productId}"></td>
+                    <td>
+                        <div class="product-image-container">
+                            <th:block th:each="dto : ${productDTOList}"
+                                      th:if="${dto.productId == product.productId}">
+                                <th:block th:if="${dto.firstImageId != null}">
+                                    <img th:src="@{/product/images/{imageId}(imageId=${dto.firstImageId})}"
+                                         alt="상품 이미지"
+                                         style="width: 300px; height: 300px;">
+                                </th:block>
+                                <th:block th:if="${dto.firstImageId == null}">
+                                    <img src="/images/default.png"
+                                         alt="기본 이미지"
+                                         style="width: 300px; height: 300px;">
+                                </th:block>
+                            </th:block>
+                        </div>
+                    </td>
+                    <td>
+                    </td>
+                    <td>
+                        <a th:href="@{/product/read/{productId}(productId=${product.productId})}">[[${product.title}]]</a>
+                    </td>
+                    <td>
+                        <i class="favorite-icon liked"
+                           th:id="'fav-icon-' + ${product.productId}"
+                           th:onclick="'removeFavorite(' + ${product.productId} + ')'"
+                           style="cursor: pointer; color: red;">
+                            &#10084; <!-- 빨간 하트 -->
+                        </i>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        </body>
+    </th:block>
+</th:block>
+<script>
+    function removeFavorite(productId) {
+        const url = '/product/favorite/' + productId + '/remove';
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('HTTP status ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // 행 삭제
+                    const row = document.getElementById('fav-icon-' + productId).closest('tr');
+                    row.remove();
+                } else {
+                    alert('찜 삭제에 실패했습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('오류가 발생했습니다. 다시 시도해주세요.');
+            });
+    }
+</script>
+</html>

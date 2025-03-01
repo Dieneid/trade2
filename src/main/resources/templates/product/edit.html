@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <div th:replace="~{layout/head}"></div>
+
+    <style>
+        /* 페이지 기본 스타일 */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fc;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 헤더 */
+        h1 {
+            text-align: center;
+            font-size: 2em;
+            color: #333;
+            margin-top: 30px;
+        }
+
+        /* 폼 컨테이너 */
+        .form-container {
+            width: 60%;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        /* 각 폼 그룹 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            font-size: 1.1em;
+            color: #555;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 1em;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #0066cc;
+            outline: none;
+        }
+
+        /* 이미지 미리보기 */
+        .image-preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .preview-item {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+            cursor: pointer;
+            background-color: #f9f9f9;
+        }
+
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-order {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        /* 오류 메시지 */
+        .field-error {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        /* 버튼 스타일 */
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        /* 플래시 메시지 */
+        .alert {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 1.1em;
+        }
+
+        .alert-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .alert-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        /* 푸터 */
+        .footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .footer p {
+            margin: 0;
+        }
+    </style>
+</head>
+<th:block th:replace="~{/layout/basic::setContent(~{this::content})}">
+    <th:block th:fragment="content">
+        <body>
+        <h1>상품 수정</h1>
+        <div class="form-container">
+            <!-- 상품 수정 폼 -->
+            <form th:action="@{/product/edit/{productId}(productId=${product.productId})}" th:object="${product}" th:method="post" class="registerForm" enctype="multipart/form-data">
+
+                <!-- 제목 입력 -->
+                <div class="form-group">
+                    <label for="title">제목</label>
+                    <input type="text" id="title" th:field="${product.title}" class="form-control" placeholder="등록 상품 제목을 입력하세요">
+                    <div class="field-error" th:errors="${product.title}"></div>
+                </div>
+
+                <!-- 카테고리 선택 -->
+                <div class="form-group">
+                    <label for="categorySelect">카테고리</label>
+                    <select id="categorySelect" th:field="${product.categoryId}" class="form-control">
+                        <option value="" disabled selected>카테고리 선택</option>
+                        <th:block th:each="category : ${categories}">
+                            <option th:value="${category.categoryId}" th:text="${category.name}"></option>
+                        </th:block>
+                    </select>
+                    <div class="field-error" th:errors="${product.categoryId}"></div>
+                </div>
+
+                <!-- 사진 선택 -->
+                <div class="form-group">
+                    <label for="fileInput">상품 사진</label>
+                    <input type="file" id="fileInput" name="fileInput" multiple onchange="previewImages()">
+                </div>
+
+                <!-- 이미지 미리보기 및 순서 변경 -->
+                <div id="imagePreviewContainer" class="image-preview-container">
+                    <!-- 미리보기 이미지들이 이곳에 동적으로 추가됩니다. -->
+                </div>
+
+                <!-- 순서 정보 -->
+                <input type="hidden" id="imageOrder" name="imageOrder">
+
+                <!-- 기존 이미지 미리보기 -->
+                <div id="existingImageContainer" class="image-preview-container">
+                    <div th:each="imageUrl, idxStat : ${imageUrls}" class="preview-item" data-existing-index="${idxStat.index}">
+                        <img th:src="${imageUrl}" alt="기존 이미지">
+                        <span class="image-order">-</span>
+                    </div>
+                </div>
+
+                <!-- 가격 입력 -->
+                <div class="form-group">
+                    <label for="sellPrice">가격</label>
+                    <input type="text" id="sellPrice" th:field="${product.sellPrice}" class="form-control" placeholder="가격을 입력하세요">
+                    <div class="field-error" th:errors="${product.sellPrice}"></div>
+                </div>
+
+                <!-- 상품 설명 -->
+                <div class="form-group">
+                    <label for="description">상품 설명</label>
+                    <textarea id="description" th:field="${product.description}" class="form-control" placeholder="상품 설명을 입력하세요"></textarea>
+                    <div class="field-error" th:errors="${product.description}"></div>
+                </div>
+
+                <!-- 수정 버튼 -->
+                <div class="form-group">
+                    <button class="btn btn-primary register">상품 수정</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 플래시 메시지 -->
+        <div th:if="${msg}">
+            <div class="alert alert-success" th:text="${msg}"></div>
+        </div>
+        <div th:if="${error}">
+            <div class="alert alert-danger" th:text="${error}"></div>
+        </div>
+
+        <div class="uploadResult">
+            <ul></ul>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+        <script>
+            $(function () {
+                var csrfToken = $("input[name='_csrf']").val();
+
+                // 카테고리 추가 AJAX 요청 처리
+                $("#addCategoryBtn").click(function () {
+                    const newCategory = prompt("새 카테고리 이름을 입력하세요:");
+                    if (!newCategory) return;
+
+                    $.ajax({
+                        url: "/product/category/add",
+                        type: "POST",
+                        contentType: "application/json",
+                        data: JSON.stringify({newCategory: newCategory}),
+                        beforeSend: function (xhr) {
+                            xhr.setRequestHeader("X-CSRF-TOKEN", csrfToken);
+                        },
+                        success: function (response) {
+                            alert("새 카테고리가 추가되었습니다.");
+                            const newOption = $('<option>', {
+                                value: response.id,
+                                text: response.name
+                            });
+                            $("#categorySelect").append(newOption);
+                            $("#categorySelect").val(response.id);
+                        },
+                        error: function () {
+                            alert("카테고리 추가에 실패했습니다.");
+                        },
+                    });
+                });
+
+/*                // 상품 수정 버튼 클릭 시
+                $(".register").click(function (event) {
+                    event.preventDefault();
+                    const selectedCategory = $("#categorySelect").val();
+                    if (!selectedCategory) {
+                        alert("카테고리를 선택하세요.");
+                        return;
+                    }
+                    $(".registerForm").submit();
+                });*/
+            });
+
+            document.addEventListener('DOMContentLoaded', function () {
+                let clickOrder = []; // 클릭 순서를 저장할 배열
+
+                // 미리보기 생성
+                function previewImages() {
+                    const fileInput = document.getElementById('fileInput');
+                    const previewContainer = document.getElementById('imagePreviewContainer');
+                    const existingImageContainer = document.getElementById('existingImageContainer');
+
+                    previewContainer.innerHTML = ''; // 초기화
+                    clickOrder = []; // 클릭 순서 초기화
+
+                    // 파일이 등록되지 않으면 기존 이미지 표시
+                    if (fileInput.files.length === 0) {
+                        existingImageContainer.style.display = 'block'; // 기존 이미지 표시
+                    } else {
+                        existingImageContainer.style.display = 'none'; // 기존 이미지 숨김
+                    }
+
+                    Array.from(fileInput.files).forEach((file, index) => {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            const imageElement = document.createElement('div');
+                            imageElement.classList.add('preview-item');
+                            imageElement.dataset.index = index; // 파일 순서 저장
+                            imageElement.innerHTML = `
+                    <img src="${e.target.result}" alt="미리보기 ${index + 1}">
+                    <span class="image-order">-</span>
+                `;
+                            previewContainer.appendChild(imageElement);
+
+                            // 클릭 이벤트 추가
+                            imageElement.addEventListener('click', () => handleImageClick(imageElement));
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                }
+
+                // 이미지 클릭 처리
+                function handleImageClick(imageElement) {
+                    const index = imageElement.dataset.index;
+
+                    if (!clickOrder.includes(index)) {
+                        clickOrder.push(index); // 클릭 순서 추가
+                    } else {
+                        // 이미 선택된 이미지 클릭 시 제거
+                        clickOrder = clickOrder.filter(item => item !== index);
+                    }
+
+                    updateImageOrder();
+                }
+
+                // 순서 업데이트
+                function updateImageOrder() {
+                    const orderInput = document.getElementById('imageOrder');
+                    const previewContainer = document.getElementById('imagePreviewContainer');
+
+                    // 순서 반영
+                    previewContainer.querySelectorAll('.preview-item').forEach(item => {
+                        const orderSpan = item.querySelector('.image-order');
+                        const index = item.dataset.index;
+                        const order = clickOrder.indexOf(index);
+
+                        if (order !== -1) {
+                            orderSpan.textContent = `${order + 1}`;
+                        } else {
+                            orderSpan.textContent = '-';
+                        }
+                    });
+
+                    // 순서를 히든 필드에 저장
+                    orderInput.value = clickOrder.join(',');
+                }
+
+                // 파일 선택 이벤트 연결
+                document.getElementById('fileInput').addEventListener('change', previewImages);
+            });
+        </script>
+        </body>
+    </th:block>
+</th:block>
+</html>

@@ -1,0 +1,99 @@
+<div th:replace="~{layout/head}"></div>
+</head>
+<th:block th:replace="~{/layout/basic::setContent(~{this::content})}">
+    <th:block th:fragment="content">
+        <body>
+
+        <h2>쪽지함</h2>
+
+        <button type="button" class="btn btn-outline-primary mt-3" data-bs-toggle="modal"
+                data-bs-target="#sendMessageForm">
+            쪽지보내기
+        </button>
+
+        <table class="table table-sm table-bordered mt-3">
+            <thead class="table-light">
+            <tr>
+                <th class="col-2">보낸 사람</th>
+                <th class="col-7">내용</th>
+                <th class="col-3">보낸 시간</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="message : ${messages}">
+                <td>
+                    <a href="#" class="sendReply">[[${message.senderEmail}]]</a>
+                </td>
+                <td th:text="${message.content}"></td>
+                <td th:text="${#temporals.format(message.createdAt,'yyyy-MM-dd HH:mm')}"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- 쪽지 보내기 모달 -->
+        <div class="modal fade" id="sendMessageForm" tabindex="-1" aria-labelledby="sendMessageFormLabel"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="sendMessageFormLabel">쪽지 보내기</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="sendMessageFormContent">
+                            <div class="mb-3">
+                                <label for="recipientEmail" class="form-label">받는 사람</label>
+                                <input type="email" class="form-control" id="recipientEmail"
+                                       placeholder="받는 사람의 이메일을 입력하세요" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="messageContent" class="form-label">내용</label>
+                                <textarea class="form-control" id="messageContent" rows="3" placeholder="쪽지 내용을 입력하세요"
+                                          required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">보내기</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            // 로그인된 사용자의 이메일을 JavaScript 변수로 설정
+            const senderEmail = /*[[${currentUserEmail}]]*/ 'unknown';
+            console.log('현재 로그인된 사용자 이메일:', senderEmail); // 디버깅용
+        </script>
+        <script>
+            var socket = new SockJS('/ws');  // WebSocket 엔드포인트 연결
+            var stompClient = Stomp.over(socket);
+
+            stompClient.connect({}, function (frame) {
+                console.log('Connected: ' + frame);
+            });
+
+            // 메시지 보내기
+            $('#sendMessageFormContent').submit(function (e) {
+                e.preventDefault();
+                const recipientEmail = $('#recipientEmail').val();
+                const messageContent = $('#messageContent').val();
+
+                console.log("Sender:", senderEmail);  // 디버깅용
+                console.log("Recipient:", recipientEmail);
+                console.log("Content:", messageContent);
+
+                // 메시지 전송
+                stompClient.send("/pub/send", {}, JSON.stringify({
+                    sender: senderEmail,
+                    receiver: recipientEmail,
+                    content: messageContent
+                }));
+
+                // 알림 및 모달 닫기
+                alert("쪽지를 보냈습니다.");
+                $('#sendMessageForm').modal('hide');
+            });
+
+        </script>
+        </body>
+    </th:block>
+</th:block>
+</html>
