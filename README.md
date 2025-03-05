@@ -16,12 +16,15 @@ ___
 ## 진행 과정
 ### 필요 조건 확인
 ![image](https://github.com/user-attachments/assets/e3400931-ad8e-4f84-ad65-b535b45126bd)
+
  각 통신사 별로 ＭＭＳ에서 쓰는 이름이 달랐기에 조사하여 확인했습니다.
 
 ![image](https://github.com/user-attachments/assets/eefe4575-feb1-4fa9-8a31-a33709b9779b)
+
  구글 이메일을 활용하기 위해 POP/IMAP 서비스를 이용했습니다.
  
 ![image](https://github.com/user-attachments/assets/cee87d87-671f-4236-bdfd-694ef569fa3d)
+
  필요한 기능을 스프링에 추가하고 포트 번호와 앱비밀번호를 설정하였습니다.
  
 ### 코드 입력
@@ -35,6 +38,7 @@ ___
 ![image](https://github.com/user-attachments/assets/aff75755-ca18-48b8-b0d3-c153109877a5)
 ![image](https://github.com/user-attachments/assets/e20403a4-8fcf-4d71-babd-da7364bd8620)
 ![image](https://github.com/user-attachments/assets/5bdebd84-645f-4d84-aa72-0766938bfcf7)
+
  기능을 확인 했을 때 정상적으로 작동하는 것을 확인 할 수 있었습니다.
 
 ## 문제점
